@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+*.wav
+*.mp3
+*.json
+conversation.md
+test_*.md
+output/
+temp_*.wav
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
