@@ -1,5 +1,14 @@
 # Voice Conversation Transcriber
 
+```
+     _____ _____ _____ _____ _____    _____ _____ _____ _____ _____ 
+    |  |  |     |     |     |   __|  |_   _| __  |  _  |   | |   __|
+    |  |  |  |  |-   -|   --|   __|    | | |    -|     | | | |__   |
+     \___/|_____|_____|_____|_____|    |_| |__|__|__|__|_|___|_____|
+                                                                      
+    🎤 Real-time Speech Recognition with Speaker Diarization 🗣️
+```
+
 A Python application for real-time conversation transcription with speaker diarization using Azure Cognitive Services.
 
 ## Features
