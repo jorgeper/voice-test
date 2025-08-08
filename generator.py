@@ -9,6 +9,13 @@ import wave
 import struct
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+from pydub.utils import which
+
+# Set ffmpeg path if installed via homebrew
+if not which("ffmpeg"):
+    homebrew_ffmpeg = "/opt/homebrew/bin/ffmpeg"
+    if os.path.exists(homebrew_ffmpeg):
+        AudioSegment.converter = homebrew_ffmpeg
 
 class ConversationGenerator:
     def __init__(self):
@@ -127,7 +134,7 @@ class ConversationGenerator:
         # Write to markdown file
         with open(output_file, 'w') as f:
             f.write(f"# Conversation: {selected_topic.title()}\n")
-            f.write(f"Duration: ~{duration} seconds\n\n")
+            f.write(f"# Duration: ~{duration} seconds\n\n")
             
             for entry in conversation:
                 f.write(f"{entry['speaker']}: {entry['text']}\n\n")

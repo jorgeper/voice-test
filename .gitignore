@@ -23,6 +23,7 @@ conversation.md
 test_*.md
 output/
 temp_*.wav
+test_output/
 
 # Environment
 .env

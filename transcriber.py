@@ -166,7 +166,7 @@ class ConversationTranscriber:
             # Save as text/markdown
             with open(output_file, 'w') as f:
                 f.write(f"# Conversation Transcript\n")
-                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
                 
                 for entry in self.transcript:
                     time_str = entry['timestamp'].strftime("%H:%M:%S")
