@@ -124,7 +124,14 @@ extension TranscriptManager: AzureTranscriberDelegate {
 
         let sameSpeaker = speaker == lastSpeakerId || speakerChangedButLikelySame
         // Start a new line only for interim hypotheses when there's a pause after a finalized segment
-        let shouldStartNewLine = !sameSpeaker || ((now.timeIntervalSince(lastUpdateAt) > pauseThreshold) && lastWasFinal) || rollingText.isEmpty
+        var shouldStartNewLine = !sameSpeaker || ((now.timeIntervalSince(lastUpdateAt) > pauseThreshold) && lastWasFinal) || rollingText.isEmpty
+
+        // If this is a final from the same speaker and it's a refinement of the current line, do NOT start new line
+        if isFinal && sameSpeaker && !rollingText.isEmpty {
+            if normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew) {
+                shouldStartNewLine = false
+            }
+        }
 
         if shouldStartNewLine {
             rollingText = text
