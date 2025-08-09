@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		099819A618D696444BE976BC /* TestConversationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9EE1C4B5566CE496082B5C /* TestConversationPlayer.swift */; };
 		156B47A7F0B9F2238609909F /* AzureTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD47B73AF3885F266094523 /* AzureTranscriber.swift */; };
 		9256B25507713C6A37841609 /* MeetingTranscriberApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194B57BBEE166AB0F0070E04 /* MeetingTranscriberApp.swift */; };
-		9A46627D58E5E28D7BF74D20 /* Pods_MeetingTranscriber.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CAE3B3B0ECBFAFD4E8551C7 /* Pods_MeetingTranscriber.framework */; };
+		98D5E0E04B7CF2719E4B04A5 /* Pods_MeetingTranscriber.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13BFC351AAA263107DEC2A7E /* Pods_MeetingTranscriber.framework */; };
 		A096BB3FC1072E5EE04763B4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B7F5EA253F67AE8CF9FDEE /* ContentView.swift */; };
 		AADC7A09C35EE0AE8B35E54C /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A705C97C7D79708E53A062 /* ContentViewModel.swift */; };
 		CD21539671CCBFA892C15C3F /* ConversationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C433519F2A48D02B4CA4DAA /* ConversationModels.swift */; };
@@ -19,25 +20,26 @@
 
 /* Begin PBXFileReference section */
 		0C433519F2A48D02B4CA4DAA /* ConversationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationModels.swift; sourceTree = "<group>"; };
-		0CAE3B3B0ECBFAFD4E8551C7 /* Pods_MeetingTranscriber.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeetingTranscriber.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		13BFC351AAA263107DEC2A7E /* Pods_MeetingTranscriber.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeetingTranscriber.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		194B57BBEE166AB0F0070E04 /* MeetingTranscriberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingTranscriberApp.swift; sourceTree = "<group>"; };
 		25A705C97C7D79708E53A062 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		3FD47B73AF3885F266094523 /* AzureTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AzureTranscriber.swift; sourceTree = "<group>"; };
 		71BCDFB737D74625D1EEE060 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7D0ECA3D40435D171F1175D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		7DCE5B82229F24E6FAAB560D /* Pods-MeetingTranscriber.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.debug.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.debug.xcconfig"; sourceTree = "<group>"; };
+		836805425AD83E28D740FD6D /* Pods-MeetingTranscriber.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.debug.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.debug.xcconfig"; sourceTree = "<group>"; };
 		871793653FE4199B7382D81D /* MeetingTranscriber.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeetingTranscriber.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6B7F5EA253F67AE8CF9FDEE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		C9FCBCAA2C35CC001D0050C4 /* Pods-MeetingTranscriber.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.release.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.release.xcconfig"; sourceTree = "<group>"; };
 		D50EFBC77271385F19EE325E /* TranscriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptManager.swift; sourceTree = "<group>"; };
+		DC9EE1C4B5566CE496082B5C /* TestConversationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConversationPlayer.swift; sourceTree = "<group>"; };
+		F9E57A9F7C9A5B00A7A9A43E /* Pods-MeetingTranscriber.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.release.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		93DC5774646DEB4EBD325C92 /* Frameworks */ = {
+		FFBC3FCF6DC4F396E4C26911 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A46627D58E5E28D7BF74D20 /* Pods_MeetingTranscriber.framework in Frameworks */,
+				98D5E0E04B7CF2719E4B04A5 /* Pods_MeetingTranscriber.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +63,7 @@
 				25A705C97C7D79708E53A062 /* ContentViewModel.swift */,
 				71BCDFB737D74625D1EEE060 /* Info.plist */,
 				194B57BBEE166AB0F0070E04 /* MeetingTranscriberApp.swift */,
+				DC9EE1C4B5566CE496082B5C /* TestConversationPlayer.swift */,
 				D50EFBC77271385F19EE325E /* TranscriptManager.swift */,
 				1576F42D2290CD58FC97A49F /* Models */,
 			);
@@ -72,19 +75,9 @@
 			children = (
 				1D87A1CBD596F3924C866848 /* MeetingTranscriber */,
 				5FAF01AA93CF755F59A2E941 /* Products */,
-				3D5AC32658B882434D8C754C /* Pods */,
-				E62EA6B07E6D9A88C1226E7B /* Frameworks */,
+				763C4306455FB9D5B299FBED /* Pods */,
+				675AA2521836B6B8D49B341B /* Frameworks */,
 			);
-			sourceTree = "<group>";
-		};
-		3D5AC32658B882434D8C754C /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				7DCE5B82229F24E6FAAB560D /* Pods-MeetingTranscriber.debug.xcconfig */,
-				C9FCBCAA2C35CC001D0050C4 /* Pods-MeetingTranscriber.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		5FAF01AA93CF755F59A2E941 /* Products */ = {
@@ -95,12 +88,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E62EA6B07E6D9A88C1226E7B /* Frameworks */ = {
+		675AA2521836B6B8D49B341B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0CAE3B3B0ECBFAFD4E8551C7 /* Pods_MeetingTranscriber.framework */,
+				13BFC351AAA263107DEC2A7E /* Pods_MeetingTranscriber.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		763C4306455FB9D5B299FBED /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				836805425AD83E28D740FD6D /* Pods-MeetingTranscriber.debug.xcconfig */,
+				F9E57A9F7C9A5B00A7A9A43E /* Pods-MeetingTranscriber.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -110,11 +113,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 10EB40CDAE83828F247A92FF /* Build configuration list for PBXNativeTarget "MeetingTranscriber" */;
 			buildPhases = (
-				4EBFF81A9E2DDDE4AB5FA36B /* [CP] Check Pods Manifest.lock */,
+				65E79A54638E7844E4A5F836 /* [CP] Check Pods Manifest.lock */,
 				D3AC5A31E168334F07CD7837 /* Sources */,
 				9B118D78B6504B4EBE8ED4E1 /* Resources */,
-				93DC5774646DEB4EBD325C92 /* Frameworks */,
-				BD0B11D96ED3EC22EC3BD84F /* [CP] Embed Pods Frameworks */,
+				FFBC3FCF6DC4F396E4C26911 /* Frameworks */,
+				B5FBF3724301BD4E1BA9AB53 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -172,7 +175,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4EBFF81A9E2DDDE4AB5FA36B /* [CP] Check Pods Manifest.lock */ = {
+		65E79A54638E7844E4A5F836 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -194,7 +197,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BD0B11D96ED3EC22EC3BD84F /* [CP] Embed Pods Frameworks */ = {
+		B5FBF3724301BD4E1BA9AB53 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -223,6 +226,7 @@
 				AADC7A09C35EE0AE8B35E54C /* ContentViewModel.swift in Sources */,
 				CD21539671CCBFA892C15C3F /* ConversationModels.swift in Sources */,
 				9256B25507713C6A37841609 /* MeetingTranscriberApp.swift in Sources */,
+				099819A618D696444BE976BC /* TestConversationPlayer.swift in Sources */,
 				DBC5E9915CDCEE6B121ABB9E /* TranscriptManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -232,7 +236,7 @@
 /* Begin XCBuildConfiguration section */
 		1A21D51D25C6BFE8601B7493 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C9FCBCAA2C35CC001D0050C4 /* Pods-MeetingTranscriber.release.xcconfig */;
+			baseConfigurationReference = F9E57A9F7C9A5B00A7A9A43E /* Pods-MeetingTranscriber.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -250,7 +254,7 @@
 		};
 		B2B775A0B9336AA8A77A9C41 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7DCE5B82229F24E6FAAB560D /* Pods-MeetingTranscriber.debug.xcconfig */;
+			baseConfigurationReference = 836805425AD83E28D740FD6D /* Pods-MeetingTranscriber.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

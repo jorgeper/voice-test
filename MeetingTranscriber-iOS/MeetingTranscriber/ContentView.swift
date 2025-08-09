@@ -6,6 +6,7 @@ enum RecordingState {
 
 struct ContentView: View {
     @StateObject private var model = ContentViewModel()
+    private let tester = TestConversationPlayer()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,6 +18,15 @@ struct ContentView: View {
                         .padding(10)
                         .background(Circle().fill(buttonColor.opacity(0.15)))
                         .foregroundStyle(buttonColor)
+                }
+                .padding(.top, 14)
+                .padding(.trailing, 16)
+                Button(action: toggleTest) {
+                    Text(tester.isRunning ? "Stop test" : "Start test")
+                        .font(.system(size: 13, weight: .semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color(UIColor.tertiarySystemFill)))
                 }
                 .padding(.top, 14)
                 .padding(.trailing, 16)
@@ -74,6 +84,18 @@ struct ContentView: View {
         case .idle: return .red
         case .recording: return .orange
         case .paused: return .blue
+        }
+    }
+}
+
+private extension ContentView {
+    func toggleTest() {
+        if tester.isRunning {
+            tester.stop()
+        } else {
+            // Ensure session is configured and engine is running so the mic picks up TTS audio from speaker
+            Task { try? await TranscriptManager.shared.start() }
+            tester.start()
         }
     }
 }
