@@ -18,7 +18,7 @@ final class TestConversationPlayer: NSObject, AVSpeechSynthesizerDelegate {
     // Deterministic script stored as "speaker: text" pairs
     private let script: [ScriptLine] = [
         .init(speaker: "Alex", text: "Morning team, quick stand-up: we’re finalizing the onboarding flow today."),
-        .init(speaker: "Samantha", text: "I pushed the new welcome screens last night, but analytics gating needs a review."),
+        .init(speaker: "Alex", text: "I pushed the new welcome screens last night, but analytics gating needs a review."),
         .init(speaker: "Daniel", text: "Jorge, can you confirm the event names for the funnel?"),
         .init(speaker: "Alex", text: "Yep, renamed signup start to onboarding begin and added step labels."),
         // Alex follows up immediately to create contiguous bubbles

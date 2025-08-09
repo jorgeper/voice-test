@@ -32,33 +32,40 @@ struct ContentView: View {
                 .padding(.trailing, 16)
             }
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(model.transcriptItems.enumerated()), id: \.element.id) { index, item in
-                        VStack(alignment: .leading, spacing: 6) {
-                            if index == 0 || model.transcriptItems[index - 1].speaker != item.speaker {
-                                Text(item.speaker)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(Array(model.transcriptItems.enumerated()), id: \.element.id) { index, item in
+                            VStack(alignment: .leading, spacing: 6) {
+                                if index == 0 || model.transcriptItems[index - 1].speaker != item.speaker {
+                                    Text(item.speaker)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 16)
+                                }
+                                Text(item.text)
+                                    .font(.system(.body, design: .rounded))
+                                    .padding(12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(Color(UIColor.secondarySystemBackground))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(Color(UIColor.separator), lineWidth: 0.25)
+                                    )
                                     .padding(.horizontal, 16)
+                                    .id(item.id)
                             }
-                            Text(item.text)
-                                .font(.system(.body, design: .rounded))
-                                .padding(12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color(UIColor.secondarySystemBackground))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color(UIColor.separator), lineWidth: 0.25)
-                                )
-                                .padding(.horizontal, 16)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 8)
+                .onChange(of: model.transcriptItems) { items in
+                    guard let last = items.last else { return }
+                    withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                }
             }
             .background(Color(UIColor.systemBackground))
         }
@@ -93,8 +100,6 @@ private extension ContentView {
         if tester.isRunning {
             tester.stop()
         } else {
-            // Ensure session is configured and engine is running so the mic picks up TTS audio from speaker
-            Task { try? await TranscriptManager.shared.start() }
             tester.start()
         }
     }
