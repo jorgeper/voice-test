@@ -40,6 +40,14 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         transcriptLines.append(segment)
     }
 
+    func didUpdateLastSegment(_ segment: AttributedString) {
+        guard !transcriptLines.isEmpty else {
+            transcriptLines = [segment]
+            return
+        }
+        transcriptLines[transcriptLines.count - 1] = segment
+    }
+
     func didReceiveError(_ message: String) {
         errorMessage = message
     }

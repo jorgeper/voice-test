@@ -5,7 +5,7 @@ import MicrosoftCognitiveServicesSpeech
 #endif
 
 protocol AzureTranscriberDelegate: AnyObject {
-    func didTranscribe(text: String, speakerId: String?)
+    func didTranscribe(text: String, speakerId: String?, isFinal: Bool)
     func didError(_ message: String)
 }
 
@@ -43,14 +43,14 @@ final class AzureTranscriber {
             guard let self else { return }
             let text = event.result?.text ?? ""
             let speaker = event.result?.speakerId
-            self.delegate?.didTranscribe(text: text, speakerId: speaker)
+            self.delegate?.didTranscribe(text: text, speakerId: speaker, isFinal: false)
         }
 
         convTranscriber.addTranscribedEventHandler { [weak self] _, event in
             guard let self else { return }
             let text = event.result?.text ?? ""
             let speaker = event.result?.speakerId
-            self.delegate?.didTranscribe(text: text, speakerId: speaker)
+            self.delegate?.didTranscribe(text: text, speakerId: speaker, isFinal: true)
         }
 
         convTranscriber.addCanceledEventHandler { [weak self] _, event in

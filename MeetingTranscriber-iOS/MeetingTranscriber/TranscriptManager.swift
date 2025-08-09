@@ -3,7 +3,12 @@ import AVFoundation
 
 protocol TranscriptManagerDelegate: AnyObject {
     func didReceiveSegment(_ segment: AttributedString)
+    func didUpdateLastSegment(_ segment: AttributedString)
     func didReceiveError(_ message: String)
+}
+
+extension TranscriptManagerDelegate {
+    func didUpdateLastSegment(_ segment: AttributedString) {}
 }
 
 final class TranscriptManager: NSObject {
@@ -19,6 +24,13 @@ final class TranscriptManager: NSObject {
     private let azure = AzureTranscriber()
 
     private override init() { super.init(); azure.delegate = self }
+
+    // Coalescing state
+    private var lastSpeakerId: String?
+    private var lastUpdateAt: Date = .distantPast
+    private var rollingText: String = ""
+    private let pauseThreshold: TimeInterval = 1.5
+    private var lastWasFinal: Bool = false
 
     func start() async throws {
         try await requestMicPermission()
@@ -85,23 +97,73 @@ final class TranscriptManager: NSObject {
 }
 
 extension TranscriptManager: AzureTranscriberDelegate {
-    func didTranscribe(text: String, speakerId: String?) {
+    func didTranscribe(text: String, speakerId: String?, isFinal: Bool) {
         guard !text.isEmpty else { return }
-        let label = speakerId?.isEmpty == false ? speakerId! : "Unknown"
-        var speaker = AttributedString("\(label): ")
-        speaker.foregroundColor = .secondary
-        var content = AttributedString(text)
-        var combined = speaker
-        combined.append(content)
-        DispatchQueue.main.async { [weak self] in
-            self?.delegate?.didReceiveSegment(combined)
+        let speaker = speakerId?.isEmpty == false ? speakerId! : "Unknown"
+        let now = Date()
+        let normalizedNew = normalize(text)
+        let normalizedRolling = normalize(rollingText)
+
+        // Treat Unknown -> identified as same speaker if text overlaps significantly
+        let speakerChangedButLikelySame = (lastSpeakerId == "Unknown" && speaker != "Unknown" && !rollingText.isEmpty && (normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)))
+
+        let sameSpeaker = speaker == lastSpeakerId || speakerChangedButLikelySame
+        // Start a new line only for interim hypotheses when there's a pause after a finalized segment
+        let shouldStartNewLine = !sameSpeaker || ((now.timeIntervalSince(lastUpdateAt) > pauseThreshold) && lastWasFinal) || rollingText.isEmpty
+
+        if shouldStartNewLine {
+            rollingText = text
+            lastSpeakerId = speaker
+            lastUpdateAt = now
+            let combined = makeAttributed(speaker: speaker, text: rollingText)
+            DispatchQueue.main.async { [weak self] in
+                self?.delegate?.didReceiveSegment(combined)
+            }
+            return
         }
+
+        // Same speaker in active window: replace with the newest hypothesis to avoid duplicates
+        if normalizedNew.contains(normalizedRolling) || isFinal {
+            rollingText = text
+        } else if normalizedRolling.contains(normalizedNew) {
+            // keep existing longer text
+        } else {
+            // fallback: prefer newer hypothesis without concatenation to avoid duplication
+            rollingText = text
+        }
+        lastUpdateAt = now
+        // If we upgraded speaker from Unknown -> identified, rebuild with new label
+        if speakerChangedButLikelySame { lastSpeakerId = speaker }
+        let combined = makeAttributed(speaker: lastSpeakerId ?? speaker, text: rollingText)
+        DispatchQueue.main.async { [weak self] in
+            self?.delegate?.didUpdateLastSegment(combined)
+        }
+        lastWasFinal = isFinal
     }
 
     func didError(_ message: String) {
         DispatchQueue.main.async { [weak self] in
             self?.delegate?.didReceiveError(message)
         }
+    }
+}
+
+private extension TranscriptManager {
+    func makeAttributed(speaker: String, text: String) -> AttributedString {
+        var speakerAttr = AttributedString("\(speaker): ")
+        speakerAttr.foregroundColor = .secondary
+        var content = AttributedString(text)
+        var combined = speakerAttr
+        combined.append(content)
+        return combined
+    }
+
+    func normalize(_ s: String) -> String {
+        let lowered = s.lowercased()
+        let noPunctScalars = lowered.unicodeScalars.filter { !CharacterSet.punctuationCharacters.contains($0) }
+        let noPunct = String(String.UnicodeScalarView(noPunctScalars))
+        let collapsed = noPunct.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        return collapsed.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
