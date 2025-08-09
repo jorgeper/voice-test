@@ -3,7 +3,7 @@ import Combine
 
 final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
     @Published var recordingState: RecordingState = .idle
-    @Published var transcriptLines: [AttributedString] = []
+    @Published var transcriptItems: [TranscriptLine] = []
     @Published var errorMessage: String?
 
     func onAppear() {
@@ -37,15 +37,26 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
 
     // MARK: - TranscriptManagerDelegate
     func didReceiveSegment(_ segment: AttributedString) {
-        transcriptLines.append(segment)
+        // Expect format "Speaker: text" from manager helper
+        let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        let speaker = String(parts.first.map(String.init) ?? "Unknown")
+        let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+        transcriptItems.append(TranscriptLine(speaker: speaker, text: text, timestamp: Date()))
     }
 
     func didUpdateLastSegment(_ segment: AttributedString) {
-        guard !transcriptLines.isEmpty else {
-            transcriptLines = [segment]
+        guard !transcriptItems.isEmpty else {
+            let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+            let speaker = String(parts.first.map(String.init) ?? "Unknown")
+            let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+            transcriptItems = [TranscriptLine(speaker: speaker, text: text, timestamp: Date())]
             return
         }
-        transcriptLines[transcriptLines.count - 1] = segment
+        let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        let speaker = String(parts.first.map(String.init) ?? "Unknown")
+        let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+        transcriptItems[transcriptItems.count - 1].speaker = speaker
+        transcriptItems[transcriptItems.count - 1].text = text
     }
 
     func didReceiveError(_ message: String) {

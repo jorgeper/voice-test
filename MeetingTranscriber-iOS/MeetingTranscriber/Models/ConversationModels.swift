@@ -1,17 +1,9 @@
 import Foundation
 
-struct SpeakerAttributedSegment {
-    let speakerLabel: String
-    let text: String
+struct TranscriptLine: Identifiable, Equatable {
+    let id: UUID = UUID()
+    var speaker: String
+    var text: String
     let timestamp: Date
-
-    var attributed: AttributedString {
-        var speaker = AttributedString("\(speakerLabel): ")
-        speaker.foregroundColor = .secondary
-        var content = AttributedString(text)
-        var combined = speaker
-        combined.append(content)
-        return combined
-    }
 }
 

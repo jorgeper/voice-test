@@ -18,6 +18,7 @@ final class TranscriptManager: NSObject {
 
     private let audioEngine = AVAudioEngine()
     private var inputNode: AVAudioInputNode? { audioEngine.inputNode }
+    private var tapInstalled: Bool = false
 
     private let session = AVAudioSession.sharedInstance()
 
@@ -44,6 +45,10 @@ final class TranscriptManager: NSObject {
     }
 
     func stop() {
+        if tapInstalled, let inputNode {
+            inputNode.removeTap(onBus: 0)
+            tapInstalled = false
+        }
         audioEngine.stop()
         audioEngine.reset()
         azure.stop()
@@ -75,6 +80,11 @@ final class TranscriptManager: NSObject {
         let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 16000, channels: 1, interleaved: true)!
         let converter = AVAudioConverter(from: inputFormat, to: targetFormat)!
 
+        if tapInstalled {
+            inputNode.removeTap(onBus: 0)
+            tapInstalled = false
+        }
+
         inputNode.installTap(onBus: 0, bufferSize: 2048, format: inputFormat) { [weak self] buffer, _ in
             guard let self else { return }
             // Convert to 16kHz mono PCM for cloud SDKs
@@ -93,6 +103,7 @@ final class TranscriptManager: NSObject {
         }
 
         try audioEngine.start()
+        tapInstalled = true
     }
 }
 

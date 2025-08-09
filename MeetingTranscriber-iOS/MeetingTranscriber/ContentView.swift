@@ -23,16 +23,32 @@ struct ContentView: View {
             }
 
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(model.transcriptLines.enumerated()), id: \.offset) { _, line in
-                        Text(line)
-                            .font(.system(.body, design: .rounded))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 4)
+                LazyVStack(alignment: .leading, spacing: 12) {
+                    ForEach(Array(model.transcriptItems.enumerated()), id: \.element.id) { index, item in
+                        VStack(alignment: .leading, spacing: 6) {
+                            if index == 0 || model.transcriptItems[index - 1].speaker != item.speaker {
+                                Text(item.speaker)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 16)
+                            }
+                            Text(item.text)
+                                .font(.system(.body, design: .rounded))
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(Color(UIColor.secondarySystemBackground))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(Color(UIColor.separator), lineWidth: 0.25)
+                                )
+                                .padding(.horizontal, 16)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 8)
+                .padding(.vertical, 8)
             }
             .background(Color(UIColor.systemBackground))
         }
