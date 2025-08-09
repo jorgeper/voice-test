@@ -4,12 +4,12 @@ import AVFoundation
 import MicrosoftCognitiveServicesSpeech
 #endif
 
-final class TestConversationPlayer: NSObject, AVSpeechSynthesizerDelegate {
+final class TestConversationPlayer: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     #if canImport(MicrosoftCognitiveServicesSpeech)
     private var azureSynth: SPXSpeechSynthesizer?
     #endif
-    private var isRunningInternal = false
+    @Published private(set) var isRunning = false
     private var currentLineIndex = 0
     private var nextWorkItem: DispatchWorkItem?
 
@@ -51,16 +51,14 @@ final class TestConversationPlayer: NSObject, AVSpeechSynthesizerDelegate {
 
     // Roughly ~60s at the configured rate and pauses by looping the script
 
-    var isRunning: Bool { isRunningInternal }
-
     override init() {
         super.init()
         synthesizer.delegate = self
     }
 
     func start() {
-        guard !isRunningInternal else { return }
-        isRunningInternal = true
+        guard !isRunning else { return }
+        isRunning = true
         currentLineIndex = 0
         #if canImport(MicrosoftCognitiveServicesSpeech)
         // Initialize Azure TTS to get natural voices, matching Python generator
@@ -84,21 +82,24 @@ final class TestConversationPlayer: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     func stop() {
-        isRunningInternal = false
+        isRunning = false
         nextWorkItem?.cancel()
         nextWorkItem = nil
         synthesizer.stopSpeaking(at: .immediate)
+        #if canImport(MicrosoftCognitiveServicesSpeech)
+        if let synth = azureSynth { try? synth.stopSpeaking() }
+        #endif
     }
 
     private func scheduleNext(after delay: TimeInterval) {
-        guard isRunningInternal else { return }
+        guard isRunning else { return }
         let work = DispatchWorkItem { [weak self] in self?.speakRandomUtterance() }
         nextWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
     }
 
     private func speakRandomUtterance() {
-        guard isRunningInternal else { return }
+        guard isRunning else { return }
         let line = script[currentLineIndex % script.count]
         currentLineIndex += 1
 

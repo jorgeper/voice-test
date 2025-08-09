@@ -6,7 +6,7 @@ enum RecordingState {
 
 struct ContentView: View {
     @StateObject private var model = ContentViewModel()
-    private let tester = TestConversationPlayer()
+    @StateObject private var tester = TestConversationPlayer()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,10 +34,12 @@ struct ContentView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(Array(model.transcriptItems.enumerated()), id: \.element.id) { index, item in
-                            VStack(alignment: .leading, spacing: 6) {
-                                if index == 0 || model.transcriptItems[index - 1].speaker != item.speaker {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        let enumerated = Array(model.transcriptItems.enumerated())
+                        ForEach(enumerated, id: \.element.id) { index, item in
+                            let isSameAsPrevious = index > 0 && model.transcriptItems[index - 1].speaker == item.speaker
+                            VStack(alignment: .leading, spacing: isSameAsPrevious ? 4 : 8) {
+                                if !isSameAsPrevious {
                                     Text(item.speaker)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
@@ -45,18 +47,21 @@ struct ContentView: View {
                                 }
                                 Text(item.text)
                                     .font(.system(.body, design: .rounded))
-                                    .padding(12)
+                                    .padding(.vertical, 12)
+                                    .padding(.leading, 18)
+                                    .padding(.trailing, 12)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        LeftBubbleShape(cornerRadius: 18, tailSize: 8)
                                             .fill(Color(UIColor.secondarySystemBackground))
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(Color(UIColor.separator), lineWidth: 0.25)
+                                        LeftBubbleShape(cornerRadius: 18, tailSize: 8)
+                                            .stroke(Color(UIColor.separator).opacity(0.6), lineWidth: 0.5)
                                     )
                                     .padding(.horizontal, 16)
                                     .id(item.id)
                             }
+                            .padding(.top, isSameAsPrevious ? 4 : 12)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
