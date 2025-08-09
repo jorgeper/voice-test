@@ -1,33 +1,80 @@
+############################################
+# OS / Editors
+############################################
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*.log
+
+############################################
 # Python
+############################################
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 venv/
+.venv/
 env/
 ENV/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
+############################################
+# iOS / Xcode
+############################################
+DerivedData/
+build/
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcuserdatad/
+*.xcuserdata/
+*.xcscmblueprint
+*.xcuserstate
+Pods/
+.swiftpm/
+.build/
+*.ipa
+*.app
+*.dSYM
+*.dSYM.zip
 
-# Project specific
+# Keep Xcode project itself tracked; ignore only volatile subfolders above
+
+############################################
+# Project artifacts
+############################################
+output/
+test_output/
 *.wav
 *.mp3
-*.json
+*.flac
+temp_*.wav
+conversation.wav
 conversation.md
 test_*.md
-output/
-temp_*.wav
-test_output/
 
-# Environment
+############################################
+# Secrets & credentials
+############################################
 .env
+.env.*
 .env.local
-
-# Logs
-*.log
+*.pem
+*.p12
+*.key
+*.crt
+*.cer
+*.mobileprovision
+service-account*.json
+*.credentials.json
+MeetingTranscriber-iOS/Secrets.xcconfig

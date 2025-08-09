@@ -1,0 +1,12 @@
+Pods/
+*.xcworkspace
+DerivedData/
+build/
+*.xcuserdatad/
+*.xcuserdata/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/xcshareddata/
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+*.DS_Store
+
