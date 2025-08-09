@@ -69,7 +69,11 @@ final class TranscriptManager: NSObject {
     }
 
     private func configureAudioSession() throws {
-        try session.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .allowBluetooth, .defaultToSpeaker])
+        try session.setCategory(
+            .playAndRecord,
+            mode: .default,
+            options: [.mixWithOthers, .duckOthers, .allowBluetooth, .defaultToSpeaker]
+        )
         try session.setActive(true, options: .notifyOthersOnDeactivation)
     }
 
