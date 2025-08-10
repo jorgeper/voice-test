@@ -63,11 +63,15 @@ struct ContentView: View {
                                         .padding(.trailing, 16)
                                 }
                                 HStack(alignment: .bottom, spacing: bubbleSpacing) {
-                                    // Always display an avatar for the current bubble.
-                                    SpeakerAvatarView(name: item.speaker, known: model.knownSpeakers)
-                                        .frame(width: avatarSize, height: avatarSize)
-                                        .padding(.leading, avatarLeading)
-                                        .padding(.bottom, 2)
+                                    if isLastOfRun {
+                                        SpeakerAvatarView(name: item.speaker, known: model.knownSpeakers)
+                                            .frame(width: avatarSize, height: avatarSize)
+                                            .padding(.leading, avatarLeading)
+                                            .padding(.bottom, 2)
+                                    } else {
+                                        Color.clear.frame(width: avatarSize, height: avatarSize)
+                                            .padding(.leading, avatarLeading)
+                                    }
                                     Text(item.text)
                                         .font(.system(.body, design: .rounded))
                                         .padding(.vertical, 12)

@@ -168,7 +168,9 @@ extension TranscriptManager: AzureTranscriberDelegate {
         }
 
         // Same speaker in active window: replace with the newest hypothesis to avoid duplicates
-        if normalizedNew.contains(normalizedRolling) || isFinal {
+        if normalizedNew == normalizedRolling {
+            // identical text; nothing to change
+        } else if normalizedNew.contains(normalizedRolling) || isFinal {
             rollingText = text
         } else if normalizedRolling.contains(normalizedNew) {
             // keep existing longer text
