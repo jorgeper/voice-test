@@ -25,7 +25,7 @@ struct SpeakerAvatarView: View {
                 // Derive number from trailing digit in "Speaker N"
                 let parts = name.split(separator: " ")
                 let num = (parts.count >= 2 ? String(parts.last!) : "?")
-                avatar(symbol: num, colorHex: resolvedColorHex(for: name))
+                avatar(symbol: num, colorHex: SpeakerColors.colorHex(for: name))
             }
         }
     }
@@ -40,13 +40,7 @@ struct SpeakerAvatarView: View {
 
     func fullName(of s: KnownSpeaker) -> String { (s.firstName + " " + s.lastName).trimmingCharacters(in: .whitespaces) }
 
-    func resolvedColorHex(for key: String) -> String {
-        // Prefer model-provided color when available
-        if let hex = model.colorHex(for: key) { return hex }
-        let palette = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#14B8A6", "#F97316", "#06B6D4"]
-        let idx = abs(key.hashValue) % palette.count
-        return palette[idx]
-    }
+    func resolvedColorHex(for key: String) -> String { SpeakerColors.colorHex(for: key) }
 }
 
 // MARK: - Color hex init

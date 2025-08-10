@@ -10,7 +10,7 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         didSet { persistSpeakers() }
     }
     private var colorMap: [String: String] = [:]
-    private let palette: [String] = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#14B8A6", "#F97316", "#06B6D4"]
+    private let palette: [String] = SpeakerColors.palette
     private var speakerOrder: [String] = []
 
     func onAppear() {
@@ -114,11 +114,8 @@ extension ContentViewModel {
         guard speaker != "Speaker ?" else { return }
         if colorMap[speaker] != nil { return }
         let used = Set(colorMap.values)
-        if let next = palette.first(where: { !used.contains($0) }) {
-            colorMap[speaker] = next
-        } else {
-            colorMap[speaker] = palette[colorMap.count % palette.count]
-        }
+        // Deterministic mapping across app
+        colorMap[speaker] = SpeakerColors.colorHex(for: speaker)
     }
     private func rebuildColors() {
         colorMap.removeAll(); for s in participantsList() { assignColorIfNeeded(for: s) }

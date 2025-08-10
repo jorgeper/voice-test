@@ -5,6 +5,7 @@ struct MainView: View {
     @State private var showingConversation = false
     @State private var activeConversationId: UUID?
     @State private var preloadData: Data?
+    @StateObject private var modelForColors = ContentViewModel()
 
     var body: some View {
         NavigationView {
@@ -30,16 +31,8 @@ struct MainView: View {
                             showingConversation = true
                         }
                     } label: {
-                        HStack(spacing: 12) {
-                            Circle().fill(Color(UIColor.systemGray5)).frame(width: 44, height: 44)
-                                .overlay(Text(initials(from: convo)).font(.headline))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(convo.title).font(.headline)
-                                Text(convo.lastSnippet).lineLimit(1).foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(Self.timeFormatter.string(from: convo.date)).foregroundColor(.secondary)
-                        }
+                        ConversationRow(convo: convo, known: [])
+                            .environmentObject(modelForColors)
                     }
                 }
                 .onDelete { store.items.remove(atOffsets: $0) }
@@ -129,3 +122,78 @@ extension UUID: Identifiable {
     public var id: UUID { self }
 }
 
+// MARK: - Conversation Row
+struct ConversationRow: View {
+    let convo: Conversation
+    let known: [KnownSpeaker]
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            BubbleClusterView(participants: convo.participants, known: known)
+                .frame(width: 56, height: 56)
+                .environmentObject(ContentViewModel())
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(titleFor(convo.participants))
+                        .font(.system(size: 18, weight: .semibold))
+                        .lineLimit(1)
+                    Spacer()
+                    Text(timeString(for: convo.date))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                Text(convo.lastSnippet)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private func titleFor(_ participants: [String]) -> String {
+        let filtered = participants.filter { $0 != "Speaker ?" }
+        if filtered.count <= 2 {
+            return filtered.joined(separator: " & ")
+        }
+        return filtered.joined(separator: ", ")
+    }
+
+    private func timeString(for date: Date) -> String {
+        let cal = Calendar.current
+        if cal.isDateInToday(date) {
+            let f = DateFormatter(); f.dateStyle = .none; f.timeStyle = .short; return f.string(from: date)
+        }
+        if cal.isDateInYesterday(date) { return "Yesterday" }
+        let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .none; return f.string(from: date)
+    }
+}
+
+struct BubbleClusterView: View {
+    let participants: [String]
+    let known: [KnownSpeaker]
+
+    var body: some View {
+        let uniques = Array(LinkedHashSet(sequence: participants.filter { $0 != "Speaker ?" })).prefix(3)
+        ZStack {
+            ForEach(Array(uniques.enumerated()), id: \.offset) { idx, name in
+                let size: CGFloat = [42, 32, 28][min(idx, 2)]
+                let offset: (x: CGFloat, y: CGFloat) = idx == 0 ? (0,0) : (idx == 1 ? (-16, 12) : (16, 12))
+                SpeakerAvatarView(name: name, known: known)
+                    .frame(width: size, height: size)
+                    .position(x: 28 + offset.x, y: 28 + offset.y)
+                    .zIndex(idx == 0 ? 2 : 1)
+            }
+        }
+    }
+}
+
+// Simple ordered unique utility
+struct LinkedHashSet<Element: Hashable>: Sequence {
+    private var set: Set<Element> = []
+    private var order: [Element] = []
+    init(sequence: [Element]) { sequence.forEach { insert($0) } }
+    mutating func insert(_ e: Element) { if !set.contains(e) { set.insert(e); order.append(e) } }
+    func makeIterator() -> IndexingIterator<[Element]> { order.makeIterator() }
+}
