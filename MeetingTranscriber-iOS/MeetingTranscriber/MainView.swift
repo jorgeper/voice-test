@@ -13,11 +13,22 @@ struct MainView: View {
                     Button {
                         activeConversationId = convo.id
                         // Load JSON into model before presenting
-                        if let url = try? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(convo.id.uuidString).json"),
-                           let data = try? Data(contentsOf: url) {
+                        let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                        let fileURL = docsURL.appendingPathComponent("\(convo.id.uuidString).json")
+                        print("Looking for conversation file at: \(fileURL.path)")
+                        
+                        if let data = try? Data(contentsOf: fileURL) {
+                            print("Found conversation file: \(data.count) bytes")
                             preloadData = data
-                        } else { preloadData = nil }
-                        showingConversation = true
+                        } else {
+                            print("Failed to load conversation file")
+                            preloadData = nil
+                        }
+                        // Ensure state updates for activeConversationId/preloadData commit
+                        // before presenting the sheet
+                        DispatchQueue.main.async {
+                            showingConversation = true
+                        }
                     } label: {
                         HStack(spacing: 12) {
                             Circle().fill(Color(UIColor.systemGray5)).frame(width: 44, height: 44)
@@ -42,18 +53,18 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingConversation) {
-                ConversationContainerView(conversationId: activeConversationId, store: store, preload: preloadData)
-                    .id(activeConversationId) // ensure fresh state per conversation
+            .sheet(item: $activeConversationId) { id in
+                ConversationContainerView(conversationId: id, store: store, preload: preloadData)
+                    .id(id) // ensure fresh state per conversation
             }
         }
     }
 
     private func startNewConversation() {
         let c = store.createNewConversation()
-        activeConversationId = c.id
         preloadData = nil
-        showingConversation = true
+        // Present via the item-bound sheet to avoid race conditions
+        DispatchQueue.main.async { activeConversationId = c.id }
     }
 
     private func initials(from c: Conversation) -> String {
@@ -82,10 +93,16 @@ struct ConversationContainerView: View {
         }
         .onDisappear { saveIfNeeded() }
         .onAppear {
-            // Always reset model for a fresh conversation instance
+            // Reset and load conversation data
             model.transcriptItems.removeAll()
             model.clearDirty()
-            if let data = preload { model.importJSON(data) }
+            if let data = preload {
+                print("Loading conversation data: \(data.count) bytes")
+                model.importJSON(data)
+                print("After import: \(model.transcriptItems.count) items")
+            } else {
+                print("No preload data for conversation")
+            }
         }
         .navigationBarHidden(true)
     }
@@ -105,5 +122,10 @@ struct ConversationContainerView: View {
         guard model.isDirty else { return }
         saveAndDismiss()
     }
+}
+
+// Allow using UUID directly with .sheet(item:)
+extension UUID: Identifiable {
+    public var id: UUID { self }
 }
 

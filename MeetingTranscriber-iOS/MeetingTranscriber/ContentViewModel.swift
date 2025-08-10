@@ -88,13 +88,21 @@ extension ContentViewModel {
     }
 
     func importJSON(_ data: Data) {
+        print("Attempting to decode JSON data...")
         if let decoded = try? JSONDecoder().decode(JSONConversation.self, from: data) {
+            print("Decoded conversation with \(decoded.messages.count) messages")
             let iso = ISO8601DateFormatter()
             transcriptItems = decoded.messages.compactMap { msg in
                 TranscriptLine(speaker: msg.speaker, text: msg.text, timestamp: iso.date(from: msg.t) ?? Date())
             }
+            print("Created \(transcriptItems.count) transcript items")
             rebuildColors()
             isDirty = false
+        } else {
+            print("Failed to decode JSON data")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Raw JSON: \(jsonString.prefix(200))...")
+            }
         }
     }
 
