@@ -5,9 +5,13 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
     @Published var recordingState: RecordingState = .idle
     @Published var transcriptItems: [TranscriptLine] = []
     @Published var errorMessage: String?
+    @Published var knownSpeakers: [KnownSpeaker] = [] {
+        didSet { persistSpeakers() }
+    }
 
     func onAppear() {
         TranscriptManager.shared.delegate = self
+        loadSpeakers()
     }
 
     func toggleRecording() {
@@ -61,6 +65,20 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
 
     func didReceiveError(_ message: String) {
         errorMessage = message
+    }
+}
+
+// MARK: - Persistence
+private extension ContentViewModel {
+    func persistSpeakers() {
+        if let data = try? JSONEncoder().encode(knownSpeakers) {
+            UserDefaults.standard.set(data, forKey: "knownSpeakers")
+        }
+    }
+    func loadSpeakers() {
+        if let data = UserDefaults.standard.data(forKey: "knownSpeakers"), let arr = try? JSONDecoder().decode([KnownSpeaker].self, from: data) {
+            knownSpeakers = arr
+        }
     }
 }
 

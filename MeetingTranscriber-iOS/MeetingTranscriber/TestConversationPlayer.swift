@@ -105,18 +105,20 @@ final class TestConversationPlayer: NSObject, ObservableObject, AVSpeechSynthesi
 
         #if canImport(MicrosoftCognitiveServicesSpeech)
         if let azureSynth {
-            // Use SSML for better prosody and voice selection per speaker
+            // Use SSML with neural style for more natural delivery
             let voiceName = voiceName(for: line.speaker)
-            let rate = "0%" // neutral; adjust if needed
             let ssml = """
-            <speak version='1.0' xml:lang='en-US'>
+            <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='en-US'>
               <voice name='\(voiceName)'>
-                <prosody rate='\(rate)'>\(line.text)</prosody>
+                <mstts:express-as style='chat' styledegree='1.0'>
+                  <prosody rate='0%' pitch='0%'>\(line.text)</prosody>
+                </mstts:express-as>
               </voice>
             </speak>
             """
             _ = try? azureSynth.startSpeakingSsml(ssml)
         } else {
+            print("[TestConversationPlayer] Azure TTS unavailable; falling back to AVSpeechSynthesizer")
             let utterance = AVSpeechUtterance(string: line.text)
             utterance.rate = 0.48
             utterance.pitchMultiplier = 1.0

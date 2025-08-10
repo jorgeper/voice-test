@@ -32,6 +32,7 @@ final class TranscriptManager: NSObject {
     private var rollingText: String = ""
     private let pauseThreshold: TimeInterval = 1.5
     private var lastWasFinal: Bool = false
+    private var lastWasProvisionalLine: Bool = false
 
     func start() async throws {
         try await requestMicPermission()
@@ -114,7 +115,9 @@ final class TranscriptManager: NSObject {
 extension TranscriptManager: AzureTranscriberDelegate {
     func didTranscribe(text: String, speakerId: String?, isFinal: Bool) {
         guard !text.isEmpty else { return }
-        let speaker = speakerId?.isEmpty == false ? speakerId! : "Unknown"
+        let rawSpeaker = speakerId?.isEmpty == false ? speakerId! : "Unknown"
+        // Always render unknown as provisional label; do NOT reuse the last speaker
+        let speaker: String = displayName(for: rawSpeaker)
         let now = Date()
         let normalizedNew = normalize(text)
         let normalizedRolling = normalize(rollingText)
@@ -133,6 +136,25 @@ extension TranscriptManager: AzureTranscriberDelegate {
             }
         }
 
+        // Merge when diarization flips speaker mid-utterance (overlapping text within a short window)
+        if !sameSpeaker && !rollingText.isEmpty {
+            let closeInTime = now.timeIntervalSince(lastUpdateAt) < 1.5
+            let overlap = normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)
+            // Only upgrade in place if the previous bubble was provisional and this refines it
+            if lastWasProvisionalLine && rawSpeaker != "Unknown" && closeInTime && overlap {
+                lastSpeakerId = speaker
+                rollingText = normalizedNew.count >= normalizedRolling.count ? text : rollingText
+                lastUpdateAt = now
+                let combined = makeAttributed(speaker: displayName(for: speaker), text: rollingText)
+                DispatchQueue.main.async { [weak self] in
+                    self?.delegate?.didUpdateLastSegment(combined)
+                }
+                lastWasFinal = isFinal
+                lastWasProvisionalLine = (speaker == "Speaker ?")
+                return
+            }
+        }
+
         if shouldStartNewLine {
             rollingText = text
             lastSpeakerId = speaker
@@ -141,6 +163,7 @@ extension TranscriptManager: AzureTranscriberDelegate {
             DispatchQueue.main.async { [weak self] in
                 self?.delegate?.didReceiveSegment(combined)
             }
+            lastWasProvisionalLine = (speaker == "Speaker ?")
             return
         }
 
@@ -161,6 +184,7 @@ extension TranscriptManager: AzureTranscriberDelegate {
             self?.delegate?.didUpdateLastSegment(combined)
         }
         lastWasFinal = isFinal
+        lastWasProvisionalLine = (lastSpeakerId == "Speaker ?")
     }
 
     func didError(_ message: String) {
@@ -171,6 +195,14 @@ extension TranscriptManager: AzureTranscriberDelegate {
 }
 
 private extension TranscriptManager {
+    func displayName(for serviceSpeakerId: String) -> String {
+        if serviceSpeakerId.lowercased().hasPrefix("guest-") {
+            let num = serviceSpeakerId.split(separator: "-").last.map(String.init) ?? "?"
+            return "Speaker \(num)"
+        }
+        if serviceSpeakerId == "Unknown" { return "Speaker ?" }
+        return serviceSpeakerId
+    }
     func makeAttributed(speaker: String, text: String) -> AttributedString {
         var speakerAttr = AttributedString("\(speaker): ")
         speakerAttr.foregroundColor = .secondary

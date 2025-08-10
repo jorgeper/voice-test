@@ -7,11 +7,21 @@ enum RecordingState {
 struct ContentView: View {
     @StateObject private var model = ContentViewModel()
     @StateObject private var tester = TestConversationPlayer()
+    @State private var showingSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Spacer()
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "person.2.circle")
+                        .font(.system(size: 20, weight: .semibold))
+                        .padding(10)
+                }
+                .padding(.top, 14)
+                .padding(.trailing, 8)
                 Button(action: model.toggleRecording) {
                     Image(systemName: iconName)
                         .font(.system(size: 20, weight: .semibold))
@@ -35,31 +45,46 @@ struct ContentView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 0) {
+                        let avatarSize: CGFloat = 28
+                        let avatarLeading: CGFloat = 14
+                        let bubbleSpacing: CGFloat = 6
+                        let labelIndent: CGFloat = avatarLeading + avatarSize + bubbleSpacing
                         let enumerated = Array(model.transcriptItems.enumerated())
                         ForEach(enumerated, id: \.element.id) { index, item in
                             let isSameAsPrevious = index > 0 && model.transcriptItems[index - 1].speaker == item.speaker
+                            let isLastOfRun = index == model.transcriptItems.count - 1 || model.transcriptItems[index + 1].speaker != item.speaker
+
                             VStack(alignment: .leading, spacing: isSameAsPrevious ? 4 : 8) {
                                 if !isSameAsPrevious {
                                     Text(item.speaker)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                        .padding(.horizontal, 16)
+                                        .padding(.leading, labelIndent)
+                                        .padding(.trailing, 16)
                                 }
-                                Text(item.text)
-                                    .font(.system(.body, design: .rounded))
-                                    .padding(.vertical, 12)
-                                    .padding(.leading, 18)
-                                    .padding(.trailing, 12)
-                                    .background(
-                                        LeftBubbleShape(cornerRadius: 18, tailSize: 8)
-                                            .fill(Color(UIColor.secondarySystemBackground))
-                                    )
-                                    .overlay(
-                                        LeftBubbleShape(cornerRadius: 18, tailSize: 8)
-                                            .stroke(Color(UIColor.separator).opacity(0.6), lineWidth: 0.5)
-                                    )
-                                    .padding(.horizontal, 16)
+                                HStack(alignment: .bottom, spacing: bubbleSpacing) {
+                                    // Always display an avatar for the current bubble.
+                                    SpeakerAvatarView(name: item.speaker, known: model.knownSpeakers)
+                                        .frame(width: avatarSize, height: avatarSize)
+                                        .padding(.leading, avatarLeading)
+                                        .padding(.bottom, 2)
+                                    Text(item.text)
+                                        .font(.system(.body, design: .rounded))
+                                        .padding(.vertical, 12)
+                                        .padding(.leading, 18)
+                                        .padding(.trailing, 12)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .background(
+                                            LeftBubbleShape(cornerRadius: 18, tailSize: 8)
+                                                .fill(Color(UIColor.secondarySystemBackground))
+                                        )
+                                        .overlay(
+                                            LeftBubbleShape(cornerRadius: 18, tailSize: 8)
+                                                .stroke(Color(UIColor.separator).opacity(0.6), lineWidth: 0.5)
+                                        )
+                                    .padding(.trailing, 16)
                                     .id(item.id)
+                                }
                             }
                             .padding(.top, isSameAsPrevious ? 4 : 12)
                         }
@@ -76,6 +101,9 @@ struct ContentView: View {
         }
         .background(Color(UIColor.secondarySystemBackground))
         .onAppear { model.onAppear() }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView(speakers: $model.knownSpeakers)
+        }
         .alert("Error", isPresented: Binding(get: { model.errorMessage != nil }, set: { if !$0 { model.errorMessage = nil } })) {
             Button("OK", role: .cancel) { model.errorMessage = nil }
         } message: {
