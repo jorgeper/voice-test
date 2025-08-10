@@ -44,6 +44,7 @@ struct MainView: View {
             }
             .sheet(isPresented: $showingConversation) {
                 ConversationContainerView(conversationId: activeConversationId, store: store, preload: preloadData)
+                    .id(activeConversationId) // ensure fresh state per conversation
             }
         }
     }
@@ -51,6 +52,7 @@ struct MainView: View {
     private func startNewConversation() {
         let c = store.createNewConversation()
         activeConversationId = c.id
+        preloadData = nil
         showingConversation = true
     }
 
@@ -80,6 +82,9 @@ struct ConversationContainerView: View {
         }
         .onDisappear { saveIfNeeded() }
         .onAppear {
+            // Always reset model for a fresh conversation instance
+            model.transcriptItems.removeAll()
+            model.clearDirty()
             if let data = preload { model.importJSON(data) }
         }
         .navigationBarHidden(true)

@@ -126,8 +126,14 @@ extension TranscriptManager: AzureTranscriberDelegate {
         let speakerChangedButLikelySame = (lastSpeakerId == "Unknown" && speaker != "Unknown" && !rollingText.isEmpty && (normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)))
 
         let sameSpeaker = speaker == lastSpeakerId || speakerChangedButLikelySame
-        // Start a new line only for interim hypotheses when there's a pause after a finalized segment
+        // Start a new line only when speaker truly changes, or after a pause following a finalized segment
         var shouldStartNewLine = !sameSpeaker || ((now.timeIntervalSince(lastUpdateAt) > pauseThreshold) && lastWasFinal) || rollingText.isEmpty
+
+        // If the new hypothesis overlaps the rolling text and it's the same speaker, keep replacing instead of starting a new line
+        if shouldStartNewLine && sameSpeaker {
+            let overlaps = normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)
+            if overlaps { shouldStartNewLine = false }
+        }
 
         // If this is a final from the same speaker and it's a refinement of the current line, do NOT start new line
         if isFinal && sameSpeaker && !rollingText.isEmpty {
@@ -164,6 +170,8 @@ extension TranscriptManager: AzureTranscriberDelegate {
                 self?.delegate?.didReceiveSegment(combined)
             }
             lastWasProvisionalLine = (speaker == "Speaker ?")
+            // Reset final flag for a fresh line so delayed finals don't spawn duplicates
+            lastWasFinal = isFinal
             return
         }
 
