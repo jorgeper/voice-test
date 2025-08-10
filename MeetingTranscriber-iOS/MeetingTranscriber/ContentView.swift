@@ -12,6 +12,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Compact header with controls and speaker bubbles
             HStack(alignment: .center) {
                 // Remove non-functional chevron; leave space for Back title (parent supplies navigation)
                 Button(action: { onBack?() }) {
@@ -23,8 +24,9 @@ struct ContentView: View {
 
                 Spacer()
 
-                // Center avatar cloud
+                // Speaker avatar cloud in the center
                 SpeakerCloudView(speakers: model.transcriptItems.map { $0.speaker }, known: model.knownSpeakers)
+                    .frame(maxWidth: 200)
 
                 Spacer()
 
@@ -43,7 +45,10 @@ struct ContentView: View {
                 }
                 .padding(.trailing, 12)
             }
-            .frame(height: 64)
+            .frame(height: 56)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.systemBackground))
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
 
             ScrollViewReader { proxy in
                 ScrollView {
