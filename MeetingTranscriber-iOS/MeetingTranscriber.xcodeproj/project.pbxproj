@@ -10,6 +10,7 @@
 		099819A618D696444BE976BC /* TestConversationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9EE1C4B5566CE496082B5C /* TestConversationPlayer.swift */; };
 		0BDB4922BAD5AD7AAAAD8012 /* SpeakerAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690D6FFD9AB128845B5C244A /* SpeakerAvatarView.swift */; };
 		156B47A7F0B9F2238609909F /* AzureTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD47B73AF3885F266094523 /* AzureTranscriber.swift */; };
+		282FE240D66978D6F95FE95C /* Pods_MeetingTranscriber.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74CCFA2CB30B7AC0D17F9C60 /* Pods_MeetingTranscriber.framework */; };
 		38712806D7675FCEA5D21FFA /* SpeakerCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F131E0992810AA3246FF8949 /* SpeakerCloudView.swift */; };
 		4FA90F8EB7A05F1F36DE54D6 /* ConversationsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2931001A7AC22EE704900C8 /* ConversationsStore.swift */; };
 		50C9EA886AAADA976C9DFFD1 /* SpeakerColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D9A293E81FF12AEB73D64C /* SpeakerColors.swift */; };
@@ -28,11 +29,13 @@
 		0C433519F2A48D02B4CA4DAA /* ConversationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationModels.swift; sourceTree = "<group>"; };
 		194B57BBEE166AB0F0070E04 /* MeetingTranscriberApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingTranscriberApp.swift; sourceTree = "<group>"; };
 		25A705C97C7D79708E53A062 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
+		2BDE2A3CF6E092A436E175FD /* Pods-MeetingTranscriber.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.debug.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.debug.xcconfig"; sourceTree = "<group>"; };
 		30C7AD411980B6D026E0FCEB /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		3FD47B73AF3885F266094523 /* AzureTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AzureTranscriber.swift; sourceTree = "<group>"; };
 		531E8910B81940B57DD27E63 /* LeftBubbleShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeftBubbleShape.swift; sourceTree = "<group>"; };
 		690D6FFD9AB128845B5C244A /* SpeakerAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakerAvatarView.swift; sourceTree = "<group>"; };
 		71BCDFB737D74625D1EEE060 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		74CCFA2CB30B7AC0D17F9C60 /* Pods_MeetingTranscriber.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeetingTranscriber.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D0ECA3D40435D171F1175D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		871793653FE4199B7382D81D /* MeetingTranscriber.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeetingTranscriber.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9765ACA67FDA1E30B5324E50 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -40,9 +43,21 @@
 		A2931001A7AC22EE704900C8 /* ConversationsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsStore.swift; sourceTree = "<group>"; };
 		A6B7F5EA253F67AE8CF9FDEE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D50EFBC77271385F19EE325E /* TranscriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptManager.swift; sourceTree = "<group>"; };
+		D69945306EBA0FA7EE131817 /* Pods-MeetingTranscriber.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeetingTranscriber.release.xcconfig"; path = "Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber.release.xcconfig"; sourceTree = "<group>"; };
 		DC9EE1C4B5566CE496082B5C /* TestConversationPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConversationPlayer.swift; sourceTree = "<group>"; };
 		F131E0992810AA3246FF8949 /* SpeakerCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakerCloudView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3F20859ACF4EFFC43128B661 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				282FE240D66978D6F95FE95C /* Pods_MeetingTranscriber.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		1576F42D2290CD58FC97A49F /* Models */ = {
@@ -81,6 +96,8 @@
 			children = (
 				1D87A1CBD596F3924C866848 /* MeetingTranscriber */,
 				5FAF01AA93CF755F59A2E941 /* Products */,
+				7BE24DAB4DC76CAE29204151 /* Pods */,
+				9B4CB2C7FD2041B80538B9E9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,6 +109,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7BE24DAB4DC76CAE29204151 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				2BDE2A3CF6E092A436E175FD /* Pods-MeetingTranscriber.debug.xcconfig */,
+				D69945306EBA0FA7EE131817 /* Pods-MeetingTranscriber.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		9B4CB2C7FD2041B80538B9E9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				74CCFA2CB30B7AC0D17F9C60 /* Pods_MeetingTranscriber.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -99,16 +134,17 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 10EB40CDAE83828F247A92FF /* Build configuration list for PBXNativeTarget "MeetingTranscriber" */;
 			buildPhases = (
+				3DEDF946819F8816A461A86C /* [CP] Check Pods Manifest.lock */,
 				D3AC5A31E168334F07CD7837 /* Sources */,
 				9B118D78B6504B4EBE8ED4E1 /* Resources */,
+				3F20859ACF4EFFC43128B661 /* Frameworks */,
+				FE17B8D086C9EF4FDF43DFD5 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = MeetingTranscriber;
-			packageProductDependencies = (
-			);
 			productName = MeetingTranscriber;
 			productReference = 871793653FE4199B7382D81D /* MeetingTranscriber.app */;
 			productType = "com.apple.product-type.application";
@@ -139,6 +175,7 @@
 			mainGroup = 3112B1A96A5CC0B6A34B4F5C;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 5FAF01AA93CF755F59A2E941 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -157,6 +194,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3DEDF946819F8816A461A86C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MeetingTranscriber-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FE17B8D086C9EF4FDF43DFD5 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MeetingTranscriber/Pods-MeetingTranscriber-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D3AC5A31E168334F07CD7837 /* Sources */ = {
@@ -185,6 +264,7 @@
 /* Begin XCBuildConfiguration section */
 		1A21D51D25C6BFE8601B7493 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D69945306EBA0FA7EE131817 /* Pods-MeetingTranscriber.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -202,6 +282,7 @@
 		};
 		B2B775A0B9336AA8A77A9C41 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2BDE2A3CF6E092A436E175FD /* Pods-MeetingTranscriber.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

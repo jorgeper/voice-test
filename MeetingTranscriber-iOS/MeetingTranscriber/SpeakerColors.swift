@@ -3,10 +3,20 @@ import SwiftUI
 
 enum SpeakerColors {
     // Shared deterministic palette
+    // Pleasant, balanced mid-tone palette (good contrast with white text)
     static let palette: [String] = [
-        "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
-        "#8B5CF6", "#14B8A6", "#F97316", "#06B6D4",
-        "#6366F1", "#22C55E", "#DB2777", "#84CC16"
+        "#2563EB", // blue
+        "#0EA5E9", // sky
+        "#06B6D4", // cyan
+        "#0D9488", // teal
+        "#059669", // emerald
+        "#84CC16", // lime green (darker)
+        "#CA8A04", // amber
+        "#D97706", // orange
+        "#DC2626", // red
+        "#DB2777", // rose
+        "#7C3AED", // violet
+        "#6366F1"  // indigo
     ]
 
     static func colorHex(for speaker: String) -> String {

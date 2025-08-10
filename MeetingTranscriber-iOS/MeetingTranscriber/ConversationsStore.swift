@@ -28,7 +28,8 @@ final class ConversationsStore: ObservableObject {
         guard let idx = items.firstIndex(where: { $0.id == id }) else { return }
         var c = items[idx]
         if let s = snippet, !s.isEmpty { c.lastSnippet = s; c.title = inferredTitle(from: c) }
-        if let p = participants { c.participants = p }
+        // Avoid wiping participants when we cannot confidently infer them
+        if let p = participants, !p.isEmpty { c.participants = p }
         c.date = Date()
         items[idx] = c
     }

@@ -12,7 +12,6 @@ struct MainView: View {
             List {
                 ForEach(store.items) { convo in
                     Button {
-                        activeConversationId = convo.id
                         // Load JSON into model before presenting
                         let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                         let fileURL = docsURL.appendingPathComponent("\(convo.id.uuidString).json")
@@ -25,11 +24,8 @@ struct MainView: View {
                             print("Failed to load conversation file")
                             preloadData = nil
                         }
-                        // Ensure state updates for activeConversationId/preloadData commit
-                        // before presenting the sheet
-                        DispatchQueue.main.async {
-                            showingConversation = true
-                        }
+                        // Present only after preloadData is set to avoid nil passing
+                        activeConversationId = convo.id
                     } label: {
                         ConversationRow(convo: convo, known: [])
                             .environmentObject(modelForColors)
@@ -46,7 +42,7 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(item: $activeConversationId) { id in
+            .sheet(item: $activeConversationId, onDismiss: { preloadData = nil }) { id in
                 ConversationContainerView(conversationId: id, store: store, preload: preloadData)
                     .id(id) // ensure fresh state per conversation
             }
@@ -89,7 +85,7 @@ struct ConversationContainerView: View {
             // Reset and load conversation data
             model.transcriptItems.removeAll()
             model.clearDirty()
-            if let data = preload {
+            if let data = preload, !data.isEmpty {
                 print("Loading conversation data: \(data.count) bytes")
                 model.importJSON(data)
                 print("After import: \(model.transcriptItems.count) items")
@@ -112,8 +108,11 @@ struct ConversationContainerView: View {
     }
 
     private func saveIfNeeded() {
-        guard model.isDirty else { return }
-        saveAndDismiss()
+        guard model.isDirty, let id = conversationId, let data = model.exportJSON(conversationId: id) else { return }
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(id.uuidString).json")
+        try? data.write(to: url)
+        store.updateConversation(id: id, snippet: model.lastSnippet(), participants: model.participantsList())
+        model.clearDirty()
     }
 }
 
@@ -135,18 +134,23 @@ struct ConversationRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(titleFor(convo.participants))
+                    let title = titleFor(convo.participants)
+                    Text(title)
                         .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(title == "No speakers" ? .secondary : .primary)
                         .lineLimit(1)
                     Spacer()
                     Text(timeString(for: convo.date))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                Text(convo.lastSnippet)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
+                if !convo.lastSnippet.isEmpty {
+                    Text(convo.lastSnippet)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                }
             }
         }
         .padding(.vertical, 6)
@@ -154,9 +158,8 @@ struct ConversationRow: View {
 
     private func titleFor(_ participants: [String]) -> String {
         let filtered = participants.filter { $0 != "Speaker ?" }
-        if filtered.count <= 2 {
-            return filtered.joined(separator: " & ")
-        }
+        if filtered.isEmpty { return "No speakers" }
+        if filtered.count <= 2 { return filtered.joined(separator: " & ") }
         return filtered.joined(separator: ", ")
     }
 
@@ -177,13 +180,40 @@ struct BubbleClusterView: View {
     var body: some View {
         let uniques = Array(LinkedHashSet(sequence: participants.filter { $0 != "Speaker ?" })).prefix(3)
         ZStack {
-            ForEach(Array(uniques.enumerated()), id: \.offset) { idx, name in
-                let size: CGFloat = [42, 32, 28][min(idx, 2)]
-                let offset: (x: CGFloat, y: CGFloat) = idx == 0 ? (0,0) : (idx == 1 ? (-16, 12) : (16, 12))
-                SpeakerAvatarView(name: name, known: known)
-                    .frame(width: size, height: size)
-                    .position(x: 28 + offset.x, y: 28 + offset.y)
-                    .zIndex(idx == 0 ? 2 : 1)
+            switch uniques.count {
+            case 0:
+                // Single placeholder fills area
+                Circle()
+                    .fill(Color(UIColor.systemGray5))
+                    .frame(width: 56, height: 56)
+                    .position(x: 28, y: 28)
+            case 1:
+                // One avatar fills the area
+                SpeakerAvatarView(name: uniques[uniques.startIndex], known: known)
+                    .frame(width: 56, height: 56)
+                    .position(x: 28, y: 28)
+            case 2:
+                // Two avatars, slightly smaller so both fit side-by-side
+                let first = uniques[uniques.startIndex]
+                let second = uniques[uniques.index(after: uniques.startIndex)]
+                SpeakerAvatarView(name: first, known: known)
+                    .frame(width: 40, height: 40)
+                    .position(x: 20, y: 28)
+                    .zIndex(2)
+                SpeakerAvatarView(name: second, known: known)
+                    .frame(width: 40, height: 40)
+                    .position(x: 36, y: 28)
+                    .zIndex(1)
+            default:
+                // Three avatars with current layout
+                ForEach(Array(uniques.enumerated()), id: \.offset) { idx, name in
+                    let size: CGFloat = [42, 32, 28][min(idx, 2)]
+                    let offset: (x: CGFloat, y: CGFloat) = idx == 0 ? (0,0) : (idx == 1 ? (-16, 12) : (16, 12))
+                    SpeakerAvatarView(name: name, known: known)
+                        .frame(width: size, height: size)
+                        .position(x: 28 + offset.x, y: 28 + offset.y)
+                        .zIndex(idx == 0 ? 2 : 1)
+                }
             }
         }
     }
