@@ -4,6 +4,7 @@ struct MainView: View {
     @StateObject private var store = ConversationsStore()
     @State private var showingConversation = false
     @State private var activeConversationId: UUID?
+    @State private var preloadData: Data?
 
     var body: some View {
         NavigationView {
@@ -11,6 +12,11 @@ struct MainView: View {
                 ForEach(store.items) { convo in
                     Button {
                         activeConversationId = convo.id
+                        // Load JSON into model before presenting
+                        if let url = try? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(convo.id.uuidString).json"),
+                           let data = try? Data(contentsOf: url) {
+                            preloadData = data
+                        } else { preloadData = nil }
                         showingConversation = true
                     } label: {
                         HStack(spacing: 12) {
@@ -37,7 +43,7 @@ struct MainView: View {
                 }
             }
             .sheet(isPresented: $showingConversation) {
-                ConversationContainerView(conversationId: activeConversationId, store: store)
+                ConversationContainerView(conversationId: activeConversationId, store: store, preload: preloadData)
             }
         }
     }
@@ -64,17 +70,38 @@ struct MainView: View {
 struct ConversationContainerView: View {
     let conversationId: UUID?
     @ObservedObject var store: ConversationsStore
+    var preload: Data?
+    @StateObject private var model = ContentViewModel()
 
     var body: some View {
         NavigationView {
             ContentView()
+                .environmentObject(model)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) { Button("Back") { dismiss() } }
+                    ToolbarItem(placement: .navigationBarLeading) { Button("Back") { saveAndDismiss() } }
                 }
+        }
+        .onDisappear { saveIfNeeded() }
+        .onAppear {
+            if let data = preload { model.importJSON(data) }
         }
     }
 
     @Environment(\ .dismiss) private var dismiss
+    private func saveAndDismiss() {
+        guard let id = conversationId, let data = model.exportJSON(conversationId: id) else { dismiss(); return }
+        // Persist file to Documents
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(id.uuidString).json")
+        try? data.write(to: url)
+        store.updateConversation(id: id, snippet: model.lastSnippet(), participants: model.participantsList())
+        model.clearDirty()
+        dismiss()
+    }
+
+    private func saveIfNeeded() {
+        guard model.isDirty else { return }
+        saveAndDismiss()
+    }
 }
 

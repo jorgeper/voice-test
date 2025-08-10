@@ -5,42 +5,42 @@ enum RecordingState {
 }
 
 struct ContentView: View {
-    @StateObject private var model = ContentViewModel()
+    @EnvironmentObject private var model: ContentViewModel
     @StateObject private var tester = TestConversationPlayer()
     @State private var showingSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(alignment: .center) {
+                // Remove non-functional chevron; leave space for Back title (parent supplies navigation)
+                Text("Back")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(Color.blue)
+                    .padding(.leading, 16)
+
                 Spacer()
-                Button {
-                    showingSettings = true
-                } label: {
-                    Image(systemName: "person.2.circle")
-                        .font(.system(size: 20, weight: .semibold))
-                        .padding(10)
+
+                // Center avatar cloud
+                SpeakerCloudView(speakers: model.transcriptItems.map { $0.speaker }, known: model.knownSpeakers)
+
+                Spacer()
+
+                // Text buttons (blue for start, red for stop)
+                HStack(spacing: 16) {
+                    Button(action: { model.startStop() }) {
+                        Text(model.recordingState == .recording ? "Stop" : "Start")
+                            .foregroundColor(model.recordingState == .recording ? .red : .blue)
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    Button(action: toggleTest) {
+                        Text(tester.isRunning ? "Stop test" : "Start test")
+                            .foregroundColor(.blue)
+                            .font(.system(size: 16, weight: .semibold))
+                    }
                 }
-                .padding(.top, 14)
-                .padding(.trailing, 8)
-                Button(action: model.toggleRecording) {
-                    Image(systemName: iconName)
-                        .font(.system(size: 20, weight: .semibold))
-                        .padding(10)
-                        .background(Circle().fill(buttonColor.opacity(0.15)))
-                        .foregroundStyle(buttonColor)
-                }
-                .padding(.top, 14)
-                .padding(.trailing, 16)
-                Button(action: toggleTest) {
-                    Text(tester.isRunning ? "Stop test" : "Start test")
-                        .font(.system(size: 13, weight: .semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color(UIColor.tertiarySystemFill)))
-                }
-                .padding(.top, 14)
-                .padding(.trailing, 16)
+                .padding(.trailing, 12)
             }
+            .frame(height: 64)
 
             ScrollViewReader { proxy in
                 ScrollView {

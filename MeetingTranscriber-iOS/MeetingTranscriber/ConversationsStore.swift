@@ -36,7 +36,9 @@ final class ConversationsStore: ObservableObject {
     private func inferredTitle(from c: Conversation) -> String {
         if !c.participants.isEmpty { return c.participants.joined(separator: ", ") }
         if !c.lastSnippet.isEmpty { return String(c.lastSnippet.prefix(32)) }
-        return c.title
+        // Default to timestamp if no better title
+        let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short
+        return f.string(from: c.date)
     }
 
     private func persist() {
@@ -46,6 +48,22 @@ final class ConversationsStore: ObservableObject {
     private func load() {
         if let data = UserDefaults.standard.data(forKey: storageKey), let decoded = try? JSONDecoder().decode([Conversation].self, from: data) {
             items = decoded
+        } else {
+            // Also load any JSON files from Documents to seed list
+            let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+                let iso = ISO8601DateFormatter()
+                for url in files where url.pathExtension == "json" {
+                    if let data = try? Data(contentsOf: url), let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        let idStr = obj["id"] as? String ?? UUID().uuidString
+                        let dt = (obj["date"] as? String).flatMap { iso.date(from: $0) } ?? Date()
+                        let participants = obj["participants"] as? [String] ?? []
+                        let messages = obj["messages"] as? [[String: Any]] ?? []
+                        let last = messages.last? ["text"] as? String ?? ""
+                        items.append(Conversation(id: UUID(uuidString: idStr) ?? UUID(), title: participants.joined(separator: ", "), lastSnippet: last, date: dt, participants: participants))
+                    }
+                }
+            }
         }
     }
 }
