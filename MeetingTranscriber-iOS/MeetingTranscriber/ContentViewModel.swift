@@ -11,6 +11,7 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
     }
     private var colorMap: [String: String] = [:]
     private let palette: [String] = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#14B8A6", "#F97316", "#06B6D4"]
+    private var speakerOrder: [String] = []
 
     func onAppear() {
         TranscriptManager.shared.delegate = self
@@ -47,6 +48,7 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
         transcriptItems.append(TranscriptLine(speaker: speaker, text: text, timestamp: Date()))
         assignColorIfNeeded(for: speaker)
+        noteSpeaker(speaker)
         isDirty = true
     }
 
@@ -64,6 +66,7 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         transcriptItems[transcriptItems.count - 1].speaker = speaker
         transcriptItems[transcriptItems.count - 1].text = text
         assignColorIfNeeded(for: speaker)
+        noteSpeaker(speaker)
         isDirty = true
     }
 
@@ -113,6 +116,8 @@ extension ContentViewModel {
         colorMap.removeAll(); for s in participantsList() { assignColorIfNeeded(for: s) }
     }
     func colorHex(for speaker: String) -> String? { colorMap[speaker] }
+    private func noteSpeaker(_ s: String) { if s != "Speaker ?" && !speakerOrder.contains(s) { speakerOrder.append(s) } }
+    func speakerOrderList() -> [String] { speakerOrder }
 }
 
 // MARK: - Persistence

@@ -75,17 +75,14 @@ struct ConversationContainerView: View {
 
     var body: some View {
         NavigationView {
-            ContentView()
+            ContentView(onBack: { saveAndDismiss() })
                 .environmentObject(model)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) { Button("Back") { saveAndDismiss() } }
-                }
         }
         .onDisappear { saveIfNeeded() }
         .onAppear {
             if let data = preload { model.importJSON(data) }
         }
+        .navigationBarHidden(true)
     }
 
     @Environment(\ .dismiss) private var dismiss

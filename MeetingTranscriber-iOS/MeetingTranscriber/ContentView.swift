@@ -5,6 +5,7 @@ enum RecordingState {
 }
 
 struct ContentView: View {
+    var onBack: (() -> Void)? = nil
     @EnvironmentObject private var model: ContentViewModel
     @StateObject private var tester = TestConversationPlayer()
     @State private var showingSettings = false
@@ -13,10 +14,12 @@ struct ContentView: View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
                 // Remove non-functional chevron; leave space for Back title (parent supplies navigation)
-                Text("Back")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(Color.blue)
-                    .padding(.leading, 16)
+                Button(action: { onBack?() }) {
+                    Text("Back")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(Color.blue)
+                }
+                .padding(.leading, 16)
 
                 Spacer()
 

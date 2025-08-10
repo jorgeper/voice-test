@@ -3,6 +3,7 @@ import SwiftUI
 struct SpeakerAvatarView: View {
     let name: String
     let known: [KnownSpeaker]
+    @EnvironmentObject private var model: ContentViewModel
 
     var body: some View {
         if name == "Speaker ?" {
@@ -40,8 +41,8 @@ struct SpeakerAvatarView: View {
     func fullName(of s: KnownSpeaker) -> String { (s.firstName + " " + s.lastName).trimmingCharacters(in: .whitespaces) }
 
     func resolvedColorHex(for key: String) -> String {
-        // Ask model for color if available in environment
-        if let model = try? EnvironmentReader.read(ContentViewModel.self), let hex = model.colorHex(for: key) { return hex }
+        // Prefer model-provided color when available
+        if let hex = model.colorHex(for: key) { return hex }
         let palette = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#14B8A6", "#F97316", "#06B6D4"]
         let idx = abs(key.hashValue) % palette.count
         return palette[idx]

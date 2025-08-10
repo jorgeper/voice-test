@@ -7,7 +7,9 @@ struct SpeakerCloudView: View {
     var body: some View {
         let filtered = speakers.filter { !$0.isEmpty && $0 != "Speaker ?" }
         let counts = Dictionary(filtered.map { ($0, 1) }, uniquingKeysWith: +)
-        let unique = Array(counts.keys)
+        // Preserve order of first appearance so avatars don't jump around
+        let order = orderedUnique(from: speakers)
+        let unique = order.filter { counts.keys.contains($0) }
         let maxCount = max(counts.values.max() ?? 1, 1)
         HStack(spacing: -12) {
             ForEach(Array(unique.enumerated()), id: \.offset) { idx, name in
@@ -31,6 +33,15 @@ struct SpeakerCloudView: View {
     private func offsetForIndex(_ i: Int) -> CGFloat {
         let pattern: [CGFloat] = [0, 8, -6, 10, -8, 6, -4, 4]
         return i < pattern.count ? pattern[i] : 0
+    }
+
+    private func orderedUnique(from list: [String]) -> [String] {
+        var seen: Set<String> = []
+        var out: [String] = []
+        for s in list where s != "Speaker ?" {
+            if !seen.contains(s) { seen.insert(s); out.append(s) }
+        }
+        return out
     }
 }
 
