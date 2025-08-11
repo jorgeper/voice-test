@@ -28,6 +28,10 @@ final class TranscriptManager: NSObject {
 
     // Coalescing state
     private var lastSpeakerId: String?
+    // The raw identifier provided by the service for the last active line
+    // (e.g., "guest-1", a real name, or "Unknown"). This is used to avoid
+    // false positives when display names change (e.g., Unknown -> identified).
+    private var lastRawSpeakerId: String?
     private var lastUpdateAt: Date = .distantPast
     private var rollingText: String = ""
     private let pauseThreshold: TimeInterval = 1.5
@@ -113,25 +117,67 @@ final class TranscriptManager: NSObject {
 }
 
 extension TranscriptManager: AzureTranscriberDelegate {
+    /// Handles a single transcription hypothesis or final result emitted by the Azure SDK.
+    ///
+    /// Coalesces streaming partials into readable bubbles, chooses when to
+    /// start a new line versus update the last one, and reconciles diarization
+    /// changes (e.g., upgrading from "Unknown" to an identified speaker) while
+    /// avoiding duplicate text.
+    ///
+    /// - Parameters:
+    ///   - text: The recognized text for this event. Empty strings are ignored.
+    ///   - speakerId: The service-provided speaker identifier (e.g., "guest-1",
+    ///     "Unknown", or a known name). It is normalized to a display label via
+    ///     `displayName(for:)` and used to group/update conversation bubbles.
+    ///   - isFinal: Whether this event represents a finalized segment from the
+    ///     service. Finals influence line breaks and de-duplication decisions.
+    ///
+    /// - Note: UI updates are dispatched onto the main queue via the delegate.
+    ///
+    /// - Logic overview:
+    ///   1. Normalize incoming `text` and the current rolling text for overlap checks.
+    ///   2. Derive a displayable speaker label and detect if a speaker change is
+    ///      likely a refinement (Unknown -> identified) based on text overlap.
+    ///   3. Decide whether to start a new line when the speaker truly changes,
+    ///      when there is a pause after a final, or when no rolling text exists.
+    ///   4. If starting a new line, emit `didReceiveSegment`; otherwise, update
+    ///      the existing line with the newer/better hypothesis via `didUpdateLastSegment`.
+    ///   5. Maintain internal state (`lastSpeakerId`, `rollingText`, timestamps,
+    ///      and flags) to inform future coalescing decisions.
     func didTranscribe(text: String, speakerId: String?, isFinal: Bool) {
         guard !text.isEmpty else { return }
+        // rawSpeaker: The untouched identifier from the service, or a fallback of
+        // "Unknown" when the incoming `speakerId` is nil/empty.
         let rawSpeaker = speakerId?.isEmpty == false ? speakerId! : "Unknown"
         // Always render unknown as provisional label; do NOT reuse the last speaker
+        // speaker: Human-friendly display label derived from `rawSpeaker` for UI grouping.
         let speaker: String = displayName(for: rawSpeaker)
+        // now: Timestamp of this callback; used to decide pause-based line breaks.
         let now = Date()
+        // normalizedNew: Lowercased, punctuation/whitespace-normalized form of `text` for overlap checks.
         let normalizedNew = normalize(text)
+        // normalizedRolling: Normalized form of the currently shown (rolling) text, for comparisons.
         let normalizedRolling = normalize(rollingText)
 
         // Treat Unknown -> identified as same speaker if text overlaps significantly
-        let speakerChangedButLikelySame = (lastSpeakerId == "Unknown" && speaker != "Unknown" && !rollingText.isEmpty && (normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)))
+        // speakerChangedButLikelySame: Heuristic that treats a transition from an
+        // unknown label to an identified speaker as the same person when the text
+        // matches/overlaps, avoiding unnecessary new bubbles.
+        let overlapsNewWithRolling = normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)
+        let lastWasUnknownDisplay = (lastSpeakerId == "Speaker ?")
+        let lastWasUnknownRaw = (lastRawSpeakerId == "Unknown")
+        let speakerChangedButLikelySame = ((lastWasUnknownDisplay || lastWasUnknownRaw) && rawSpeaker != "Unknown" && !rollingText.isEmpty && overlapsNewWithRolling)
 
-        let sameSpeaker = speaker == lastSpeakerId || speakerChangedButLikelySame
+        // sameSpeaker: Whether we consider this event to belong to the same speaker line.
+        let sameSpeaker = (lastRawSpeakerId != nil && rawSpeaker == lastRawSpeakerId) || (speaker == lastSpeakerId) || speakerChangedButLikelySame
         // Start a new line only when speaker truly changes, or after a pause following a finalized segment
+        // shouldStartNewLine: Primary decision flag for creating a fresh bubble vs. updating the last one.
         var shouldStartNewLine = !sameSpeaker || ((now.timeIntervalSince(lastUpdateAt) > pauseThreshold) && lastWasFinal) || rollingText.isEmpty
 
         // If the new hypothesis overlaps the rolling text and it's the same speaker, keep replacing instead of starting a new line
         if shouldStartNewLine && sameSpeaker {
-            let overlaps = normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)
+            // overlaps: Whether new and rolling text share substantial content (in either direction).
+            let overlaps = overlapsNewWithRolling
             if overlaps { shouldStartNewLine = false }
         }
 
@@ -144,13 +190,18 @@ extension TranscriptManager: AzureTranscriberDelegate {
 
         // Merge when diarization flips speaker mid-utterance (overlapping text within a short window)
         if !sameSpeaker && !rollingText.isEmpty {
+            // closeInTime: Guards against merging when the handoff is not temporally close.
             let closeInTime = now.timeIntervalSince(lastUpdateAt) < 1.5
-            let overlap = normalizedNew.contains(normalizedRolling) || normalizedRolling.contains(normalizedNew)
-            // Only upgrade in place if the previous bubble was provisional and this refines it
-            if lastWasProvisionalLine && rawSpeaker != "Unknown" && closeInTime && overlap {
+            // overlap: Confirms that the content appears to be a refinement rather than a new utterance.
+            let overlap = overlapsNewWithRolling
+            // Upgrade the existing bubble when content strongly overlaps within a short window.
+            // This handles diarization flips mid-utterance (e.g., Unknown -> identified, or guest-1 -> guest-2).
+            if closeInTime && overlap {
                 lastSpeakerId = speaker
+                lastRawSpeakerId = rawSpeaker
                 rollingText = normalizedNew.count >= normalizedRolling.count ? text : rollingText
                 lastUpdateAt = now
+                // combined: `speaker` label + `rollingText` as an attributed string for UI rendering.
                 let combined = makeAttributed(speaker: displayName(for: speaker), text: rollingText)
                 DispatchQueue.main.async { [weak self] in
                     self?.delegate?.didUpdateLastSegment(combined)
@@ -164,7 +215,9 @@ extension TranscriptManager: AzureTranscriberDelegate {
         if shouldStartNewLine {
             rollingText = text
             lastSpeakerId = speaker
+            lastRawSpeakerId = rawSpeaker
             lastUpdateAt = now
+            // combined: New bubble content built from the current `speaker` and `rollingText`.
             let combined = makeAttributed(speaker: speaker, text: rollingText)
             DispatchQueue.main.async { [weak self] in
                 self?.delegate?.didReceiveSegment(combined)
@@ -188,7 +241,8 @@ extension TranscriptManager: AzureTranscriberDelegate {
         }
         lastUpdateAt = now
         // If we upgraded speaker from Unknown -> identified, rebuild with new label
-        if speakerChangedButLikelySame { lastSpeakerId = speaker }
+        if speakerChangedButLikelySame { lastSpeakerId = speaker; lastRawSpeakerId = rawSpeaker }
+        // combined: Updated content for the existing bubble with possibly upgraded speaker label.
         let combined = makeAttributed(speaker: lastSpeakerId ?? speaker, text: rollingText)
         DispatchQueue.main.async { [weak self] in
             self?.delegate?.didUpdateLastSegment(combined)

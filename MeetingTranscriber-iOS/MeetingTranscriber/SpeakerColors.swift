@@ -20,8 +20,12 @@ enum SpeakerColors {
     ]
 
     static func colorHex(for speaker: String) -> String {
-        // Stable mapping based on name hash
-        let index = abs(speaker.hashValue) % palette.count
+        // Stable mapping using a deterministic hash (djb2) over UTF8 bytes
+        var hash: UInt64 = 5381
+        for byte in speaker.utf8 {
+            hash = ((hash << 5) &+ hash) &+ UInt64(byte)
+        }
+        let index = Int(hash % UInt64(palette.count))
         return palette[index]
     }
 }

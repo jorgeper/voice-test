@@ -45,7 +45,56 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         // Expect format "Speaker: text" from manager helper
         let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
         let speaker = String(parts.first.map(String.init) ?? "Unknown")
-        let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+        let text = String(parts.dropFirst().joined()).trimmingCharacters(in: .whitespaces)
+
+        // Coalesce: If the incoming segment is from the same speaker (or the
+        // previous was provisional "Speaker ?" that upgraded) and the new text
+        // overlaps or subsumes the last text within a short time window, merge
+        // instead of appending a new bubble. Also collapse any immediately
+        // preceding bubbles from the same speaker that the new text subsumes.
+        if let last = transcriptItems.last {
+            let now = Date()
+            let coalesceWindow: TimeInterval = 3.0
+            let sameSpeaker = last.speaker == speaker || last.speaker == "Speaker ?"
+            let newNorm = TranscriptManager.shared.normalize(text)
+            let lastNorm = TranscriptManager.shared.normalize(last.text)
+            let overlaps = !newNorm.isEmpty && (!lastNorm.isEmpty) && (newNorm.contains(lastNorm) || lastNorm.contains(newNorm))
+            let closeInTime = now.timeIntervalSince(last.timestamp) <= coalesceWindow
+
+            if sameSpeaker && (overlaps || closeInTime) {
+                // Walk backwards to collapse a recent run of same-speaker lines
+                var idx = transcriptItems.count - 1
+                while idx >= 0 {
+                    if transcriptItems[idx].speaker == speaker || transcriptItems[idx].speaker == "Speaker ?" {
+                        let prevNorm = TranscriptManager.shared.normalize(transcriptItems[idx].text)
+                        if newNorm.contains(prevNorm) || prevNorm.contains(newNorm) {
+                            // Update this earliest matching bubble and remove any following duplicates
+                            transcriptItems[idx].speaker = speaker
+                            transcriptItems[idx].text = text
+                            if idx < transcriptItems.count - 1 {
+                                transcriptItems.removeSubrange((idx+1)..<transcriptItems.count)
+                            }
+                            assignColorIfNeeded(for: speaker)
+                            noteSpeaker(speaker)
+                            isDirty = true
+                            return
+                        } else {
+                            break
+                        }
+                    } else {
+                        break
+                    }
+                }
+                // If we didn't find an earlier overlap, just update the last bubble
+                transcriptItems[transcriptItems.count - 1].speaker = speaker
+                transcriptItems[transcriptItems.count - 1].text = text
+                assignColorIfNeeded(for: speaker)
+                noteSpeaker(speaker)
+                isDirty = true
+                return
+            }
+        }
+
         transcriptItems.append(TranscriptLine(speaker: speaker, text: text, timestamp: Date()))
         assignColorIfNeeded(for: speaker)
         noteSpeaker(speaker)

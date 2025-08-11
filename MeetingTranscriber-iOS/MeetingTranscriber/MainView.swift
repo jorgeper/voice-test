@@ -43,14 +43,16 @@ struct MainView: View {
                 }
             }
             .sheet(item: $activeConversationId, onDismiss: { preloadData = nil }) { id in
-                ConversationContainerView(conversationId: id, store: store, preload: preloadData)
+                // Capture current preload data at sheet creation to avoid race with later changes
+                let data = preloadData
+                ConversationContainerView(conversationId: id, store: store, preload: data)
                     .id(id) // ensure fresh state per conversation
             }
         }
     }
 
     private func startNewConversation() {
-        let c = store.createNewConversation()
+    let c = store.createNewConversation()
         preloadData = nil
         // Present via the item-bound sheet to avoid race conditions
         DispatchQueue.main.async { activeConversationId = c.id }

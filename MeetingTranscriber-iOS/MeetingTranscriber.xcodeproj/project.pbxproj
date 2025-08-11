@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -37,7 +37,7 @@
 		71BCDFB737D74625D1EEE060 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		74CCFA2CB30B7AC0D17F9C60 /* Pods_MeetingTranscriber.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MeetingTranscriber.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D0ECA3D40435D171F1175D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		871793653FE4199B7382D81D /* MeetingTranscriber.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeetingTranscriber.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		871793653FE4199B7382D81D /* MeetingTranscriber.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingTranscriber.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9765ACA67FDA1E30B5324E50 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A1D9A293E81FF12AEB73D64C /* SpeakerColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakerColors.swift; sourceTree = "<group>"; };
 		A2931001A7AC22EE704900C8 /* ConversationsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsStore.swift; sourceTree = "<group>"; };
@@ -115,7 +115,6 @@
 				2BDE2A3CF6E092A436E175FD /* Pods-MeetingTranscriber.debug.xcconfig */,
 				D69945306EBA0FA7EE131817 /* Pods-MeetingTranscriber.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -159,7 +158,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					16E4487E6357E795F6317690 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -174,7 +172,6 @@
 			);
 			mainGroup = 3112B1A96A5CC0B6A34B4F5C;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 5FAF01AA93CF755F59A2E941 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -269,6 +266,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JAJTBLCY3M;
 				INFOPLIST_FILE = MeetingTranscriber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -287,6 +285,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JAJTBLCY3M;
 				INFOPLIST_FILE = MeetingTranscriber/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
