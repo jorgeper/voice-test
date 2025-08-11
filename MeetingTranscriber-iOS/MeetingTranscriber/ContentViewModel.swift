@@ -1,7 +1,24 @@
 import Foundation
 import Combine
+import OSLog
 
 final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
+    // MARK: - Logging
+    private let logger = Logger(subsystem: "com.example.MeetingTranscriber", category: "ContentViewModel")
+    static var debugLoggingEnabled: Bool = true
+    private func logInfo(_ message: String) {
+        guard Self.debugLoggingEnabled else { return }
+        logger.notice("[VM] \(message, privacy: .public)")
+    }
+    private func logDebug(_ message: String) {
+        guard Self.debugLoggingEnabled else { return }
+        logger.debug("[VM] \(message, privacy: .public)")
+    }
+    private func snippet(_ text: String, limit: Int = 120) -> String {
+        if text.count <= limit { return text }
+        let idx = text.index(text.startIndex, offsetBy: limit)
+        return String(text[..<idx]) + "…"
+    }
     @Published var recordingState: RecordingState = .idle
     @Published var transcriptItems: [TranscriptLine] = []
     @Published var errorMessage: String?
@@ -16,15 +33,19 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
     func onAppear() {
         TranscriptManager.shared.delegate = self
         loadSpeakers()
+        logInfo("onAppear: delegate set, knownSpeakers=\(knownSpeakers.count)")
     }
 
     func startStop() {
         switch recordingState {
         case .idle:
+            logInfo("action: start requested (idle -> recording)")
             Task { await start() }
         case .recording, .paused:
+            logInfo("action: stop requested (\(String(describing: recordingState)))")
             TranscriptManager.shared.stop()
             recordingState = .idle
+            logInfo("state: recordingState=idle")
         }
     }
 
@@ -32,11 +53,13 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         do {
             try await TranscriptManager.shared.start()
             await MainActor.run { self.recordingState = .recording }
+            logInfo("start: audio+azure started, recordingState=recording")
         } catch {
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
                 self.recordingState = .idle
             }
+            logInfo("start: FAILED error='\(error.localizedDescription)' -> recordingState=idle")
         }
     }
 
@@ -46,81 +69,40 @@ final class ContentViewModel: ObservableObject, TranscriptManagerDelegate {
         let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
         let speaker = String(parts.first.map(String.init) ?? "Unknown")
         let text = String(parts.dropFirst().joined()).trimmingCharacters(in: .whitespaces)
-
-        // Coalesce: If the incoming segment is from the same speaker (or the
-        // previous was provisional "Speaker ?" that upgraded) and the new text
-        // overlaps or subsumes the last text within a short time window, merge
-        // instead of appending a new bubble. Also collapse any immediately
-        // preceding bubbles from the same speaker that the new text subsumes.
-        if let last = transcriptItems.last {
-            let now = Date()
-            let coalesceWindow: TimeInterval = 3.0
-            let sameSpeaker = last.speaker == speaker || last.speaker == "Speaker ?"
-            let newNorm = TranscriptManager.shared.normalize(text)
-            let lastNorm = TranscriptManager.shared.normalize(last.text)
-            let overlaps = !newNorm.isEmpty && (!lastNorm.isEmpty) && (newNorm.contains(lastNorm) || lastNorm.contains(newNorm))
-            let closeInTime = now.timeIntervalSince(last.timestamp) <= coalesceWindow
-
-            if sameSpeaker && (overlaps || closeInTime) {
-                // Walk backwards to collapse a recent run of same-speaker lines
-                var idx = transcriptItems.count - 1
-                while idx >= 0 {
-                    if transcriptItems[idx].speaker == speaker || transcriptItems[idx].speaker == "Speaker ?" {
-                        let prevNorm = TranscriptManager.shared.normalize(transcriptItems[idx].text)
-                        if newNorm.contains(prevNorm) || prevNorm.contains(newNorm) {
-                            // Update this earliest matching bubble and remove any following duplicates
-                            transcriptItems[idx].speaker = speaker
-                            transcriptItems[idx].text = text
-                            if idx < transcriptItems.count - 1 {
-                                transcriptItems.removeSubrange((idx+1)..<transcriptItems.count)
-                            }
-                            assignColorIfNeeded(for: speaker)
-                            noteSpeaker(speaker)
-                            isDirty = true
-                            return
-                        } else {
-                            break
-                        }
-                    } else {
-                        break
-                    }
-                }
-                // If we didn't find an earlier overlap, just update the last bubble
-                transcriptItems[transcriptItems.count - 1].speaker = speaker
-                transcriptItems[transcriptItems.count - 1].text = text
-                assignColorIfNeeded(for: speaker)
-                noteSpeaker(speaker)
-                isDirty = true
-                return
-            }
-        }
+        logInfo("segment:new speaker='\(speaker)' len=\(text.count) idx=\(transcriptItems.count) snippet='\(snippet(text))'")
 
         transcriptItems.append(TranscriptLine(speaker: speaker, text: text, timestamp: Date()))
         assignColorIfNeeded(for: speaker)
         noteSpeaker(speaker)
         isDirty = true
+        logDebug("segment:appended total=\(transcriptItems.count)")
     }
 
     func didUpdateLastSegment(_ segment: AttributedString) {
         guard !transcriptItems.isEmpty else {
             let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
             let speaker = String(parts.first.map(String.init) ?? "Unknown")
-            let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+            let text = String(parts.dropFirst().joined()).trimmingCharacters(in: .whitespaces)
+            logInfo("segment:update-empty -> creating new speaker='\(speaker)' len=\(text.count) snippet='\(snippet(text))'")
             transcriptItems = [TranscriptLine(speaker: speaker, text: text, timestamp: Date())]
             return
         }
         let parts = segment.characters.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
         let speaker = String(parts.first.map(String.init) ?? "Unknown")
-        let text = String(parts.dropFirst().joined()) .trimmingCharacters(in: .whitespaces)
+        let text = String(parts.dropFirst().joined()).trimmingCharacters(in: .whitespaces)
+        let prev = transcriptItems[transcriptItems.count - 1]
+        logInfo("segment:update-last idx=\(transcriptItems.count - 1) prevSpeaker='\(prev.speaker)'->'\(speaker)' prevLen=\(prev.text.count) newLen=\(text.count) newSnippet='\(snippet(text))'")
         transcriptItems[transcriptItems.count - 1].speaker = speaker
         transcriptItems[transcriptItems.count - 1].text = text
         assignColorIfNeeded(for: speaker)
         noteSpeaker(speaker)
         isDirty = true
+        logDebug("segment:updated total=\(transcriptItems.count)")
     }
 
     func didReceiveError(_ message: String) {
         errorMessage = message
+        logInfo("error: \(message)")
     }
 }
 // MARK: - Import/Export

@@ -44,7 +44,10 @@ python test_end_to_end.py
 ```bash
 cd MeetingTranscriber-iOS
 
-# Initial setup
+# Initial setup (preferred method)
+./Scripts/bootstrap.sh
+
+# Manual setup if bootstrap fails
 brew install xcodegen cocoapods
 xcodegen generate
 pod install
@@ -60,11 +63,32 @@ xcodebuild -workspace MeetingTranscriber.xcworkspace -scheme MeetingTranscriber 
 open MeetingTranscriber.xcworkspace
 ```
 
+## System Dependencies
+
+### macOS
+```bash
+brew install portaudio ffmpeg
+```
+
+### Ubuntu/Debian
+```bash
+sudo apt-get update
+sudo apt-get install portaudio19-dev ffmpeg
+```
+
+### Windows
+- Download FFmpeg from https://ffmpeg.org/download.html
+- PyAudio wheels include PortAudio
+
 ## Environment Setup
 
 Required environment variables:
 - `AZURE_SPEECH_KEY`: Your Azure Speech Service API key
 - `AZURE_SPEECH_REGION`: Azure region (e.g., "eastus")
+
+For iOS development, the same values are used as:
+- `SPEECH_KEY`
+- `SPEECH_REGION`
 
 ## Architecture
 
@@ -74,7 +98,9 @@ Required environment variables:
 ├── transcriber.py              # Core transcription logic and Azure SDK integration
 ├── generator.py                # Text-to-speech and conversation generation
 ├── utils.py                    # Audio processing utilities
-└── config.yaml                 # Speaker voice configuration
+├── config.yaml                 # Speaker voice configuration
+├── test_setup.py               # Environment verification
+└── test_end_to_end.py          # Integration tests
 ```
 
 ### iOS Application Structure
@@ -82,13 +108,19 @@ Required environment variables:
 MeetingTranscriber-iOS/
 ├── MeetingTranscriber/
 │   ├── Models/
-│   │   └── TranscriptEntry.swift    # Data model for transcript entries
+│   │   ├── TranscriptEntry.swift    # Data model for transcript entries
+│   │   └── ConversationModels.swift # Additional conversation models
 │   ├── Views/
 │   │   ├── ContentView.swift        # Main app view
 │   │   ├── MainView.swift           # Transcription interface
 │   │   └── SettingsView.swift       # App settings
+│   ├── ViewModels/
+│   │   └── ContentViewModel.swift   # View model for ContentView
 │   ├── AzureTranscriber.swift       # Azure SDK integration
 │   └── TranscriptManager.swift      # State management
+├── Scripts/
+│   ├── bootstrap.sh                 # Automated setup script
+│   └── set_env.sh                   # Environment configuration
 └── project.yml                      # XcodeGen configuration
 ```
 
@@ -133,22 +165,25 @@ MeetingTranscriber-iOS/
 ## Key Technologies
 
 ### Python Dependencies
-- `azure-cognitiveservices-speech`: Speech recognition and synthesis
+- `azure-cognitiveservices-speech` (1.34.0+): Speech recognition and synthesis
 - `pyaudio`: Cross-platform audio I/O
 - `pydub`: Audio file manipulation
 - `numpy`: Audio data processing
 - `rich`: Terminal UI formatting
 - `openai`: AI text generation for synthetic conversations
+- `pyyaml`: Configuration file parsing
 
 ### iOS Dependencies
 - `MicrosoftCognitiveServicesSpeech-iOS`: Azure Speech SDK
 - SwiftUI: Modern declarative UI framework
 - AVFoundation: Audio session management
+- iOS 16.0+ deployment target
+- Swift 5.9
 
 ## Configuration Files
 
 ### config.yaml
-Defines speaker voices for text-to-speech:
+Defines speaker voices for text-to-speech with 10 predefined speakers:
 ```yaml
 speakers:
   Alice: 
@@ -163,6 +198,18 @@ speakers:
 
 ### project.yml
 XcodeGen configuration for iOS project generation. Modify deployment targets and bundle identifiers here.
+
+### Markdown Conversation Format
+For generating audio from text conversations:
+```markdown
+# Conversation: Team Meeting
+
+Alice: Hey everyone, let's discuss the new feature.
+
+Bob: Sure! I've been working on the API integration.
+
+Charlie: Great. When can we test it?
+```
 
 ## Common Tasks
 
@@ -192,6 +239,23 @@ XcodeGen configuration for iOS project generation. Modify deployment targets and
 - Unit tests for TranscriptManager logic
 - Test on real devices for microphone permissions
 
+## Troubleshooting
+
+### Authentication Failed
+- Verify key and region are correct
+- Ensure environment variables are set
+- Check Azure subscription is active
+
+### No Audio Input
+- Grant microphone permissions
+- Check audio input device in system settings
+- Try specifying device: `--device 1`
+
+### Speaker Diarization Issues
+- Ensure using a supported Azure region
+- Minimum 2 speakers required for diarization
+- Audio quality affects accuracy
+
 ## Performance Considerations
 
 1. **Audio Processing**
@@ -208,3 +272,8 @@ XcodeGen configuration for iOS project generation. Modify deployment targets and
    - Update UI on main thread only
    - Limit transcript history display
    - Use virtualized lists for long transcripts
+
+## Azure Pricing Reference
+
+- **Free tier (F0)**: 5 hours speech-to-text/month, 0.5M characters TTS/month
+- **Standard tier (S0)**: $1/audio hour STT, $16/1M characters neural TTS
