@@ -1,239 +1,210 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+This is a dual-platform voice transcription project with:
+- **Python Application**: Real-time conversation transcription with speaker diarization
+- **iOS Application**: SwiftUI app for meeting transcription on iPhone
+
+Both applications use Azure Cognitive Services Speech SDK for speech recognition and synthesis.
+
+## Common Development Commands
+
+### Python Application
+
+```bash
+# Setup virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run transcriber from microphone
+python conversation_transcriber.py --mode microphone
+
+# Run transcriber from audio file
+python conversation_transcriber.py --mode file --input audio.wav
+
+# Generate synthetic conversation
+python conversation_transcriber.py --mode random --duration 60 --output test.md
+
+# Convert markdown to audio
+python conversation_transcriber.py --mode generate --input convo.md --output audio.wav
+
+# Run tests
+python test_setup.py
+python test_end_to_end.py
+```
+
+### iOS Application
+
+```bash
+cd MeetingTranscriber-iOS
+
+# Initial setup
+brew install xcodegen cocoapods
+xcodegen generate
+pod install
+
+# Set environment variables in Xcode scheme
+chmod +x Scripts/set_env.sh
+./Scripts/set_env.sh
+
+# Build from command line
+xcodebuild -workspace MeetingTranscriber.xcworkspace -scheme MeetingTranscriber -configuration Debug build
+
+# Open in Xcode
+open MeetingTranscriber.xcworkspace
+```
+
+## Environment Setup
+
+Required environment variables:
+- `AZURE_SPEECH_KEY`: Your Azure Speech Service API key
+- `AZURE_SPEECH_REGION`: Azure region (e.g., "eastus")
+
+## Architecture
+
+### Python Application Structure
+```
+├── conversation_transcriber.py  # Main entry point with CLI interface
+├── transcriber.py              # Core transcription logic and Azure SDK integration
+├── generator.py                # Text-to-speech and conversation generation
+├── utils.py                    # Audio processing utilities
+└── config.yaml                 # Speaker voice configuration
+```
+
+### iOS Application Structure
+```
+MeetingTranscriber-iOS/
+├── MeetingTranscriber/
+│   ├── Models/
+│   │   └── TranscriptEntry.swift    # Data model for transcript entries
+│   ├── Views/
+│   │   ├── ContentView.swift        # Main app view
+│   │   ├── MainView.swift           # Transcription interface
+│   │   └── SettingsView.swift       # App settings
+│   ├── AzureTranscriber.swift       # Azure SDK integration
+│   └── TranscriptManager.swift      # State management
+└── project.yml                      # XcodeGen configuration
+```
+
 ## Implementation Best Practices
 
-### 0 — Purpose  
+### Python Development
 
-These rules ensure maintainability, safety, and developer velocity. 
-**MUST** rules are enforced by CI; **SHOULD** rules are strongly recommended.
+1. **Function Design**
+   - Keep functions focused on a single responsibility
+   - Use type hints for all function parameters and returns
+   - Handle Azure SDK exceptions gracefully
+   - Separate audio processing from transcription logic
 
----
+2. **Error Handling**
+   - Always catch and handle `azure.cognitiveservices.speech` exceptions
+   - Provide clear error messages for configuration issues
+   - Validate audio input formats before processing
 
-### 1 — Before Coding
+3. **Testing**
+   - Test audio processing functions with sample audio files
+   - Mock Azure SDK calls for unit tests
+   - Use `test_setup.py` to verify environment configuration
 
-- **BP-1 (MUST)** Ask the user clarifying questions.
-- **BP-2 (SHOULD)** Draft and confirm an approach for complex work.  
-- **BP-3 (SHOULD)** If ≥ 2 approaches exist, list clear pros and cons.
+### iOS Development
 
----
+1. **SwiftUI Best Practices**
+   - Use `@StateObject` for view models
+   - Implement proper error handling for microphone permissions
+   - Follow MVVM architecture pattern
+   - Use `Task` for async operations
 
-### 2 — While Coding
+2. **Azure SDK Integration**
+   - Handle speech recognition events on main thread for UI updates
+   - Properly manage speech recognizer lifecycle
+   - Implement reconnection logic for network issues
 
-- **C-1 (MUST)** Follow TDD: scaffold stub -> write failing test -> implement.
-- **C-2 (MUST)** Name functions with existing domain vocabulary for consistency.  
-- **C-3 (SHOULD NOT)** Introduce classes when small testable functions suffice.  
-- **C-4 (SHOULD)** Prefer simple, composable, testable functions.
-- **C-5 (MUST)** Prefer branded `type`s for IDs
-  ```ts
-  type UserId = Brand<string, 'UserId'>   // ✅ Good
-  type UserId = string                    // ❌ Bad
-  ```  
-- **C-6 (MUST)** Use `import type { … }` for type-only imports.
-- **C-7 (SHOULD NOT)** Add comments except for critical caveats; rely on self‑explanatory code.
-- **C-8 (SHOULD)** Default to `type`; use `interface` only when more readable or interface merging is required. 
-- **C-9 (SHOULD NOT)** Extract a new function unless it will be reused elsewhere, is the only way to unit-test otherwise untestable logic, or drastically improves readability of an opaque block.
+3. **Memory Management**
+   - Stop recognition when view disappears
+   - Clean up audio sessions properly
+   - Limit transcript history to prevent memory issues
 
----
+## Key Technologies
 
-### 3 — Testing
+### Python Dependencies
+- `azure-cognitiveservices-speech`: Speech recognition and synthesis
+- `pyaudio`: Cross-platform audio I/O
+- `pydub`: Audio file manipulation
+- `numpy`: Audio data processing
+- `rich`: Terminal UI formatting
+- `openai`: AI text generation for synthetic conversations
 
-- **T-1 (MUST)** For a simple function, colocate unit tests in `*.spec.ts` in same directory as source file.
-- **T-2 (MUST)** For any API change, add/extend integration tests in `packages/api/test/*.spec.ts`.
-- **T-3 (MUST)** ALWAYS separate pure-logic unit tests from DB-touching integration tests.
-- **T-4 (SHOULD)** Prefer integration tests over heavy mocking.  
-- **T-5 (SHOULD)** Unit-test complex algorithms thoroughly.
-- **T-6 (SHOULD)** Test the entire structure in one assertion if possible
-  ```ts
-  expect(result).toBe([value]) // Good
+### iOS Dependencies
+- `MicrosoftCognitiveServicesSpeech-iOS`: Azure Speech SDK
+- SwiftUI: Modern declarative UI framework
+- AVFoundation: Audio session management
 
-  expect(result).toHaveLength(1); // Bad
-  expect(result[0]).toBe(value); // Bad
-  ```
+## Configuration Files
 
----
-
-### 4 — Database
-
-- **D-1 (MUST)** Type DB helpers as `KyselyDatabase | Transaction<Database>`, so it works for both transactions and DB instances.  
-- **D-2 (SHOULD)** Override incorrect generated types in `packages/shared/src/db-types.override.ts`. e.g. autogenerated types show incorrect BigInt value – so we override to `string` manually.
-
----
-
-### 5 — Code Organization
-
-- **O-1 (MUST)** Place code in `packages/shared` only if used by ≥ 2 packages.
-
----
-
-### 6 — Tooling Gates
-
-- **G-1 (MUST)** `prettier --check` passes.  
-- **G-2 (MUST)** `turbo typecheck lint` passes.  
-
----
-
-### 7 - Git
-
-- **GH-1 (MUST**) Use Conventional Commits format when writing commit messages: https://www.conventionalcommits.org/en/v1.0.0
-- **GH-2 (SHOULD NOT**) Refer to Claude or Anthropic in commit messages.
-
----
-
-## Writing Functions Best Practices
-
-When evaluating whether a function you implemented is good or not, use this checklist:
-
-1. Can you read the function and HONESTLY easily follow what it's doing? If yes, then stop here.
-2. Does the function have very high cyclomatic complexity? (number of independent paths, or, in a lot of cases, number of nesting if if-else as a proxy). If it does, then it's probably sketchy.
-3. Are there any common data structures and algorithms that would make this function much easier to follow and more robust? Parsers, trees, stacks / queues, etc.
-4. Are there any unused parameters in the function?
-5. Are there any unnecessary type casts that can be moved to function arguments?
-6. Is the function easily testable without mocking core features (e.g. sql queries, redis, etc.)? If not, can this function be tested as part of an integration test?
-7. Does it have any hidden untested dependencies or any values that can be factored out into the arguments instead? Only care about non-trivial dependencies that can actually change or affect the function.
-8. Brainstorm 3 better function names and see if the current name is the best, consistent with rest of codebase.
-
-IMPORTANT: you SHOULD NOT refactor out a separate function unless there is a compelling need, such as:
-  - the refactored function is used in more than one place
-  - the refactored function is easily unit testable while the original function is not AND you can't test it any other way
-  - the original function is extremely hard to follow and you resort to putting comments everywhere just to explain it
-
-## Writing Tests Best Practices
-
-When evaluating whether a test you've implemented is good or not, use this checklist:
-
-1. SHOULD parameterize inputs; never embed unexplained literals such as 42 or "foo" directly in the test.
-2. SHOULD NOT add a test unless it can fail for a real defect. Trivial asserts (e.g., expect(2).toBe(2)) are forbidden.
-3. SHOULD ensure the test description states exactly what the final expect verifies. If the wording and assert don’t align, rename or rewrite.
-4. SHOULD compare results to independent, pre-computed expectations or to properties of the domain, never to the function’s output re-used as the oracle.
-5. SHOULD follow the same lint, type-safety, and style rules as prod code (prettier, ESLint, strict types).
-6. SHOULD express invariants or axioms (e.g., commutativity, idempotence, round-trip) rather than single hard-coded cases whenever practical. Use `fast-check` library e.g.
-```
-import fc from 'fast-check';
-import { describe, expect, test } from 'vitest';
-import { getCharacterCount } from './string';
-
-describe('properties', () => {
-  test('concatenation functoriality', () => {
-    fc.assert(
-      fc.property(
-        fc.string(),
-        fc.string(),
-        (a, b) =>
-          getCharacterCount(a + b) ===
-          getCharacterCount(a) + getCharacterCount(b)
-      )
-    );
-  });
-});
+### config.yaml
+Defines speaker voices for text-to-speech:
+```yaml
+speakers:
+  Alice: 
+    voice: en-US-JennyNeural
+    rate: 1.0
+    pitch: 0
+  Bob:
+    voice: en-US-GuyNeural
+    rate: 0.9
+    pitch: -2
 ```
 
-7. Unit tests for a function should be grouped under `describe(functionName, () => ...`.
-8. Use `expect.any(...)` when testing for parameters that can be anything (e.g. variable ids).
-9. ALWAYS use strong assertions over weaker ones e.g. `expect(x).toEqual(1)` instead of `expect(x).toBeGreaterThanOrEqual(1)`.
-10. SHOULD test edge cases, realistic input, unexpected input, and value boundaries.
-11. SHOULD NOT test conditions that are caught by the type checker.
+### project.yml
+XcodeGen configuration for iOS project generation. Modify deployment targets and bundle identifiers here.
 
-## Code Organization
+## Common Tasks
 
-- `packages/api` - Fastify API server
-  - `packages/api/src/publisher/*.ts` - Specific implementations of publishing to social media platforms
-- `packages/web` - Next.js 15 app with App Router
-- `packages/shared` - Shared types and utilities
-  - `packages/shared/social.ts` - Character size and media validations for social media platforms
-- `packages/api-schema` - API contract schemas using TypeBox
+### Adding a New Speaker Voice
+1. Edit `config.yaml` to add speaker configuration
+2. Use Azure's voice gallery to find voice names
+3. Test with: `python conversation_transcriber.py --mode generate --input test.md`
 
-## Remember Shortcuts
+### Debugging Audio Issues
+1. Python: Check microphone permissions and PyAudio device list
+2. iOS: Verify Info.plist has microphone usage description
+3. Both: Ensure audio format is compatible (16kHz, 16-bit, mono)
 
-Remember the following shortcuts which the user may invoke at any time.
+### Updating Azure SDK
+1. Python: Update version in `requirements.txt`
+2. iOS: Update version in `Podfile` and run `pod update`
 
-### QNEW
+## Testing Approach
 
-When I type "qnew", this means:
+### Python Testing
+- Unit tests for audio utilities in `utils.py`
+- Integration tests for transcription in `test_end_to_end.py`
+- Manual testing with various audio formats and microphones
 
-```
-Understand all BEST PRACTICES listed in CLAUDE.md.
-Your code SHOULD ALWAYS follow these best practices.
-```
+### iOS Testing
+- UI testing for transcription flow
+- Unit tests for TranscriptManager logic
+- Test on real devices for microphone permissions
 
-### QPLAN
-When I type "qplan", this means:
-```
-Analyze similar parts of the codebase and determine whether your plan:
-- is consistent with rest of codebase
-- introduces minimal changes
-- reuses existing code
-```
+## Performance Considerations
 
-## QCODE
+1. **Audio Processing**
+   - Use appropriate sample rates (16kHz for speech)
+   - Process audio in chunks to reduce latency
+   - Implement proper audio level detection
 
-When I type "qcode", this means:
+2. **Network**
+   - Handle intermittent connectivity gracefully
+   - Batch recognition results to reduce UI updates
+   - Implement exponential backoff for retries
 
-```
-Implement your plan and make sure your new tests pass.
-Always run tests to make sure you didn't break anything else.
-Always run `prettier` on the newly created files to ensure standard formatting.
-Always run `turbo typecheck lint` to make sure type checking and linting passes.
-```
-
-### QCHECK
-
-When I type "qcheck", this means:
-
-```
-You are a SKEPTICAL senior software engineer.
-Perform this analysis for every MAJOR code change you introduced (skip minor changes):
-
-1. CLAUDE.md checklist Writing Functions Best Practices.
-2. CLAUDE.md checklist Writing Tests Best Practices.
-3. CLAUDE.md checklist Implementation Best Practices.
-```
-
-### QCHECKF
-
-When I type "qcheckf", this means:
-
-```
-You are a SKEPTICAL senior software engineer.
-Perform this analysis for every MAJOR function you added or edited (skip minor changes):
-
-1. CLAUDE.md checklist Writing Functions Best Practices.
-```
-
-### QCHECKT
-
-When I type "qcheckt", this means:
-
-```
-You are a SKEPTICAL senior software engineer.
-Perform this analysis for every MAJOR test you added or edited (skip minor changes):
-
-1. CLAUDE.md checklist Writing Tests Best Practices.
-```
-
-### QUX
-
-When I type "qux", this means:
-
-```
-Imagine you are a human UX tester of the feature you implemented. 
-Output a comprehensive list of scenarios you would test, sorted by highest priority.
-```
-
-### QGIT
-
-When I type "qgit", this means:
-
-```
-Add all changes to staging, create a commit, and push to remote.
-
-Follow this checklist for writing your commit message:
-- SHOULD use Conventional Commits format: https://www.conventionalcommits.org/en/v1.0.0
-- SHOULD NOT refer to Claude or Anthropic in the commit message.
-- SHOULD structure commit message as follows:
-<type>[optional scope]: <description>
-[optional body]
-[optional footer(s)]
-- commit SHOULD contain the following structural elements to communicate intent: 
-fix: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
-feat: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
-BREAKING CHANGE: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
-types other than fix: and feat: are allowed, for example @commitlint/config-conventional (based on the Angular convention) recommends build:, chore:, ci:, docs:, style:, refactor:, perf:, test:, and others.
-footers other than BREAKING CHANGE: <description> may be provided and follow a convention similar to git trailer format.
+3. **UI Responsiveness**
+   - Update UI on main thread only
+   - Limit transcript history display
+   - Use virtualized lists for long transcripts
